@@ -30,9 +30,9 @@ With either missing the site still works: the landing is public, and `/app` says
 
 The landing can go live on its own. **Don't set `INSTA_LUCK_HOSTED_ENABLED=true` on a public site until gate 1 is met.**
 
-**Decision, 2026-11-05: v1 uses Deployment Protection.** Vercel Authentication with the All Deployments scope. It isn't set yet: it needs someone logged in to the Vercel project.
+**Decision, 2026-11-05: v1 uses Deployment Protection.** Vercel Authentication with the All Deployments scope. It was turned on for the `insta-luck` project on 2026-11-05 (previously `all_except_custom_domains`), and anonymous requests to every project URL now redirect to Vercel's login.
 
-To set it, either:
+To change it, either:
 
 - **Dashboard:** project, Settings, Deployment Protection, turn on Vercel Authentication, choose All Deployments, Save.
 - **API:** `PATCH /v9/projects/{project}` with `{"ssoProtection":{"deploymentType":"all"}}`.
