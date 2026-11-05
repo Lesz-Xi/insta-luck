@@ -1,0 +1,23 @@
+{
+  "name": "photography-collector",
+  "version": "0.1.0",
+  "description": "Local-first Instagram post image collector with preview, safe downloads, and duplicate detection.",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "photography-collector": "dist/cli.js"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json",
+    "collector": "tsx src/cli.ts",
+    "web": "tsx src/webServer.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3",
+    "vitest": "^5.1.0"
+  }
+}
