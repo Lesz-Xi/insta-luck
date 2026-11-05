@@ -1,10 +1,13 @@
 export class CollectorError extends Error {
   public readonly code: string;
+  /** Upstream HTTP status, when the failure came from one. */
+  public readonly upstreamStatus: number | undefined;
 
-  public constructor(code: string, message: string) {
+  public constructor(code: string, message: string, upstreamStatus?: number) {
     super(message);
     this.name = "CollectorError";
     this.code = code;
+    this.upstreamStatus = upstreamStatus;
   }
 }
 

@@ -15,6 +15,22 @@ export type MediaKind =
 
 export type CandidateConfidence = "high" | "medium" | "low";
 
+/**
+ * Why the classifier placed a candidate where it did. This is the evidence;
+ * `mediaKind` and `confidence` are estimates drawn from it.
+ */
+export type CandidateBasis =
+  | "first_dated_photo"
+  | "same_date_as_first"
+  | "photo_without_date"
+  | "different_date"
+  | "listed_under_more_posts"
+  | "shown_on_profile"
+  | "described_as_related"
+  | "profile_picture"
+  | "mentions_video"
+  | "no_signal";
+
 export type DownloadStatus =
   | { readonly type: "candidate" }
   | { readonly type: "downloaded"; readonly path: string; readonly sha256: string; readonly bytes: number }
@@ -24,8 +40,9 @@ export type DownloadStatus =
 export interface NormalizedInstagramUrl {
   readonly inputUrl: string;
   readonly canonicalUrl: string;
+  /** The post's shortcode, or the username for a profile. */
   readonly shortcode: string;
-  readonly routeType: "post" | "reel";
+  readonly routeType: "post" | "reel" | "profile";
 }
 
 export interface MediaCandidate {
@@ -35,6 +52,7 @@ export interface MediaCandidate {
   readonly shortcode?: string;
   readonly remoteUrl: string;
   readonly mediaKind: MediaKind;
+  readonly basis: CandidateBasis;
   readonly carouselIndex?: number;
   readonly altText?: string;
   readonly caption?: string;

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Collector | Insta Luck</title>
+    <meta name="description" content="Paste a public Instagram post or profile link, review the images found, and download the ones you choose." />
+    <meta name="theme-color" content="#f3f2ee" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./src/styles/app.css" />
+    <script type="module" src="./src/app/main.ts"></script>
+  </head>
+  <body data-phase="idle">
+    <a class="skip" href="#post-link">Skip to the link field</a>
+    <svg width="0" height="0" class="sr-only" aria-hidden="true" focusable="false">
+      <symbol id="mark-a" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M18 -7C130 -13 356 -3 509 -6 514 142 503 424 508 606 362 613 128 601 -7 606 -13 431 -3 151 -6 -9 44 -13 92 -7 152 -10" /></symbol>
+      <symbol id="mark-b" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M488 -8C350 -3 140 -12 -8 -5 -3 150 -12 430 -6 607 146 601 372 612 507 605 513 420 502 160 508 -7 462 -12 410 -6 356 -9" /></symbol>
+      <symbol id="mark-c" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M-7 22C-12 160 -3 420 -8 608 150 603 360 612 508 606 503 430 513 150 507 -8 360 -13 150 -3 -6 -6 -11 40 -5 82 -9 134" /></symbol>
+      <symbol id="tick" viewBox="0 0 14 14"><path d="M2 7.500 5.500 11 12 3.500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" /></symbol>
+    </svg>
+
+    <header class="bar">
+      <a class="wordmark" href="/">Insta Luck</a>
+      <a class="link" href="/#how">How it works</a>
+    </header>
+
+    <main>
+      <section class="intake" aria-labelledby="page-title">
+        <h1 id="page-title">Find the images in a public post or profile</h1>
+
+        <form id="find-form" novalidate>
+          <label for="post-link">Instagram link</label>
+          <div class="field">
+            <input
+              id="post-link"
+              name="url"
+              type="url"
+              inputmode="url"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="https://www.instagram.com/…"
+              aria-describedby="post-hint post-error"
+            />
+            <button class="button" id="find-button" type="submit">Find images</button>
+            <button class="button is-quiet" id="cancel-button" type="button" hidden>Cancel</button>
+          </div>
+          <p class="hint" id="post-hint">Public posts and profiles. A profile shows only a few recent posts, and results may be incomplete. A Reel link may return a still image, but video isn’t supported.</p>
+          <p class="alert" id="post-error" role="alert" hidden></p>
+        </form>
+
+        <div class="notice" id="notice" hidden>
+          <p id="notice-text"></p>
+          <div class="notice-actions">
+            <button class="button is-quiet" id="notice-action" type="button" hidden></button>
+            <a class="link" id="notice-link" href="https://github.com/Lesz-Xi/insta-luck" hidden>Run it locally from the source</a>
+          </div>
+        </div>
+
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+        <p class="elapsed" id="elapsed" aria-hidden="true" hidden></p>
+      </section>
+
+      <section class="results" id="results" aria-labelledby="results-title" hidden>
+        <div class="results-head">
+          <h2 id="results-title" tabindex="-1"></h2>
+          <p id="results-source"></p>
+          <p class="results-note" id="results-note"></p>
+        </div>
+
+        <div class="group" id="group-post">
+          <div class="boundary"><h3 id="group-post-title">Likely from this post</h3></div>
+          <ul class="sheet" id="sheet-post"></ul>
+        </div>
+
+        <div class="group is-nearby" id="group-nearby">
+          <div class="boundary">
+            <h3>Found nearby</h3>
+            <p id="group-nearby-note">These were on the page but probably aren’t part of the post. Mark one only if you want it.</p>
+          </div>
+          <ul class="sheet is-nearby" id="sheet-nearby"></ul>
+        </div>
+
+        <div class="tray" id="tray">
+          <div class="tray-summary">
+            <p class="tray-count" id="tray-count">0 selected</p>
+            <p class="tray-status" id="tray-status" role="status" aria-live="polite"></p>
+          </div>
+          <div class="tray-actions">
+            <button class="button is-quiet" id="clear-button" type="button" hidden>Clear</button>
+            <button class="button is-quiet" id="retry-button" type="button" hidden>Retry failed</button>
+            <button class="button" id="download-button" type="button" disabled>Download selected</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="loupe" id="loupe" aria-labelledby="loupe-title">
+      <div class="loupe-bar">
+        <h2 id="loupe-title"></h2>
+        <form method="dialog"><button class="button is-quiet" type="submit">Close</button></form>
+      </div>
+      <div class="loupe-stage"><img id="loupe-image" alt="" /></div>
+      <div class="loupe-foot">
+        <div>
+          <p id="loupe-reason"></p>
+          <p id="loupe-alt"></p>
+        </div>
+        <div class="loupe-actions">
+          <button class="button is-quiet" id="loupe-prev" type="button">Previous</button>
+          <button class="button is-quiet" id="loupe-next" type="button">Next</button>
+          <label class="loupe-mark"><input id="loupe-check" type="checkbox" /> Mark this frame</label>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

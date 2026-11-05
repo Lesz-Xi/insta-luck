@@ -11,3 +11,11 @@ coverage/
 /*.png
 /*.webp
 /*.mp4
+
+# Hosted build and test output
+.vercel/
+.env
+.env.*
+!.env.example
+playwright-report/
+test-results/

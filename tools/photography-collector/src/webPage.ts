@@ -4,7 +4,7 @@ export function renderWebPage(): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Twin Photography Collector</title>
+  <title>Insta Luck local collector</title>
   <style>
     :root {
       --paper: #eee7da;
@@ -264,7 +264,7 @@ export function renderWebPage(): string {
 <body>
   <main class="hero" aria-labelledby="page-title">
     <section class="hero-inner">
-      <h1 id="page-title" class="sr-only">Twin Photography Collector</h1>
+      <h1 id="page-title" class="sr-only">Insta Luck local collector</h1>
       <div class="panel" aria-live="polite">
         <div class="field">
           <label for="source-url">Instagram URL</label>

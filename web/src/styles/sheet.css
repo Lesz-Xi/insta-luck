@@ -1,0 +1,140 @@
+/*
+ * One object on both routes: a numbered, uncropped frame you can mark.
+ * Cells share one proportion and images are contained, so nothing is cropped
+ * and nothing moves when a preview arrives. The mark's viewBox matches that
+ * proportion, so it scales evenly and its path length stays true.
+ */
+
+.frame {
+  --frame-ground: var(--plate);
+  --frame-text: var(--ink);
+  --frame-text-quiet: var(--muted);
+  position: relative;
+  min-width: 0;
+}
+
+.frame-hit {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.frame-plate {
+  display: block;
+  aspect-ratio: 5 / 6;
+  overflow: hidden;
+  background: var(--frame-ground);
+}
+
+.frame-plate img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* The native control spans the frame: a whole photograph is the touch target. */
+.frame-check {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.frame-box {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--paper);
+  pointer-events: none;
+}
+
+.frame-box svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+}
+
+@media (hover: hover) {
+  .frame-hit:hover .frame-box {
+    box-shadow: 0 0 0 1px var(--frame-text);
+  }
+}
+
+.frame-check:checked ~ .frame-box {
+  border-color: var(--mark);
+  background: var(--mark);
+}
+
+.frame-check:checked ~ .frame-box svg {
+  opacity: 1;
+}
+
+.frame-mark {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--mark);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  pointer-events: none;
+  transition: stroke-dashoffset var(--mark-out) var(--ease);
+}
+
+.frame-check:checked ~ .frame-mark {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--mark-in) var(--ease) var(--draw-delay, 0s);
+}
+
+.frame-check:focus-visible ~ .frame-plate {
+  outline: 2px solid var(--frame-text);
+  outline-offset: 3px;
+}
+
+.frame-caption {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  align-items: baseline;
+  padding-top: 8px;
+  color: var(--frame-text);
+  font: 400 0.8125rem/1.35 var(--sans);
+}
+
+.frame-number {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.frame-reason {
+  color: var(--frame-text-quiet);
+}
+
+.boundary {
+  display: grid;
+  gap: 2px;
+}
+
+.boundary h3 {
+  font: italic 400 1.375rem/1.2 var(--serif);
+  font-variation-settings: "opsz" 28;
+  letter-spacing: -0.01em;
+}

@@ -1,0 +1,27 @@
+{
+  "name": "insta-luck",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Turn a public Instagram post link into an inspectable image selection and an explicit download.",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "tsx scripts/local-server.ts --dev",
+    "dev:sample": "tsx scripts/local-server.ts --dev --fixture",
+    "build": "vite build --config vite.config.ts",
+    "start": "tsx scripts/local-server.ts",
+    "typecheck": "tsc --noEmit && npm --prefix tools/photography-collector run typecheck",
+    "test": "vitest run && npm --prefix tools/photography-collector test",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

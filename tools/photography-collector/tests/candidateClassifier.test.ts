@@ -35,4 +35,24 @@ describe("classifyCandidates", () => {
     expect(candidates[2]?.mediaKind).toBe("related_post_thumbnail");
     expect(candidates[2]?.confidence).toBe("low");
   });
+
+  it("reports why each candidate was placed where it is", () => {
+    const candidates = classifyCandidates(input, raw);
+    expect(candidates.map((candidate) => candidate.basis)).toEqual([
+      "profile_picture",
+      "first_dated_photo",
+      "different_date"
+    ]);
+  });
+
+  it("falls back to an undated or unknown basis instead of inventing a date match", () => {
+    const candidates = classifyCandidates(input, [
+      { sourceName: "public_reader", remoteUrl: "https://scontent.cdninstagram.com/a.jpg", altText: "Photo by Someone", ordinal: 1 },
+      { sourceName: "public_reader", remoteUrl: "https://scontent.cdninstagram.com/b.jpg", altText: "A logo", ordinal: 2 }
+    ]);
+    expect(candidates.map((candidate) => [candidate.mediaKind, candidate.basis])).toEqual([
+      ["carousel_item", "photo_without_date"],
+      ["unknown", "no_signal"]
+    ]);
+  });
 });

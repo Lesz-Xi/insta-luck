@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Insta Luck: a post link, the images you choose</title>
+    <meta name="description" content="Paste a public Instagram post or profile link, review the images found, and download the ones you choose." />
+    <meta name="theme-color" content="#f3f2ee" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/newsreader-roman.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/newsreader-italic.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="./src/styles/landing.css" />
+    <script type="module" src="./src/landing.ts"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <svg width="0" height="0" class="sr-only" aria-hidden="true" focusable="false">
+      <symbol id="mark-a" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M18 -7C130 -13 356 -3 509 -6 514 142 503 424 508 606 362 613 128 601 -7 606 -13 431 -3 151 -6 -9 44 -13 92 -7 152 -10" /></symbol>
+      <symbol id="mark-b" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M488 -8C350 -3 140 -12 -8 -5 -3 150 -12 430 -6 607 146 601 372 612 507 605 513 420 502 160 508 -7 462 -12 410 -6 356 -9" /></symbol>
+      <symbol id="mark-c" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M-7 22C-12 160 -3 420 -8 608 150 603 360 612 508 606 503 430 513 150 507 -8 360 -13 150 -3 -6 -6 -11 40 -5 82 -9 134" /></symbol>
+      <symbol id="tick" viewBox="0 0 14 14"><path d="M2 7.500 5.500 11 12 3.500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" /></symbol>
+    </svg>
+
+    <header class="masthead">
+      <a class="wordmark" href="/">Insta Luck</a>
+      <nav aria-label="Primary">
+        <a class="link" href="#how">How it works</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="promise" aria-labelledby="promise-title">
+        <h1 id="promise-title">A post link. <em>The images you choose.</em></h1>
+        <div class="promise-body">
+          <p>Paste a public Instagram post or profile link, review the images we find, and download only the ones you pick. A post’s page holds more than the post, so every frame says why it’s there.</p>
+          <div class="promise-actions">
+            <a class="button" href="/app">Open collector</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="proof" aria-labelledby="proof-title" data-sheet>
+        <div class="proof-head">
+          <h2 id="proof-title" class="sr-only">A sample sheet</h2>
+          <p><strong>Sample sheet.</strong> Museum photographs standing in for a post. This isn’t a live result.</p>
+          <p>Try it: mark a frame.</p>
+        </div>
+
+        <div class="rebate">
+          <div class="boundary"><h3>Likely from this post</h3></div>
+          <ul class="strip">
+            <li class="frame">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" aria-label="Mark sample frame 01" />
+                <span class="frame-plate"><img src="/samples/frame-01-720.webp" srcset="/samples/frame-01-360.webp 360w, /samples/frame-01-720.webp 720w" sizes="(max-width: 620px) 50vw, 20vw" width="720" height="572" alt="A curved colonnade around a fountain and statue, in a park." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-a" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">01</span><span class="frame-reason">First dated photo</span></p>
+            </li>
+            <li class="frame" data-draw="0">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" checked aria-label="Mark sample frame 02" />
+                <span class="frame-plate"><img src="/samples/frame-02-720.webp" srcset="/samples/frame-02-360.webp 360w, /samples/frame-02-720.webp 720w" sizes="(max-width: 620px) 50vw, 20vw" width="720" height="588" alt="A statue under bare trees beside a wide lawn." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-b" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">02</span><span class="frame-reason">Same date as frame 01</span></p>
+            </li>
+            <li class="frame">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" aria-label="Mark sample frame 03" />
+                <span class="frame-plate"><img src="/samples/frame-03-720.webp" srcset="/samples/frame-03-360.webp 360w, /samples/frame-03-720.webp 720w" sizes="(max-width: 620px) 50vw, 20vw" width="720" height="881" alt="A statue on a pedestal beneath a large bare tree." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-c" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">03</span><span class="frame-reason">Same date as frame 01</span></p>
+            </li>
+            <li class="frame" data-draw="1">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" checked aria-label="Mark sample frame 04" />
+                <span class="frame-plate"><img src="/samples/frame-04-720.webp" srcset="/samples/frame-04-360.webp 360w, /samples/frame-04-720.webp 720w" sizes="(max-width: 620px) 50vw, 20vw" width="720" height="881" alt="A statue beside a long, tree-lined path." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-a" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">04</span><span class="frame-reason">Same date as frame 01</span></p>
+            </li>
+            <li class="frame">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" aria-label="Mark sample frame 05" />
+                <span class="frame-plate"><img src="/samples/frame-05-720.webp" srcset="/samples/frame-05-360.webp 360w, /samples/frame-05-720.webp 720w" sizes="(max-width: 620px) 50vw, 20vw" width="720" height="896" alt="A bust on a tall pillar beside a curved stone bench." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-b" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">05</span><span class="frame-reason">Same date as frame 01</span></p>
+            </li>
+          </ul>
+        </div>
+
+        <div class="proof-lower">
+          <div class="rebate is-nearby">
+            <div class="boundary"><h3>Found nearby</h3></div>
+            <ul class="strip is-nearby">
+            <li class="frame">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" aria-label="Mark sample frame 06" />
+                <span class="frame-plate"><img src="/samples/frame-06-720.webp" srcset="/samples/frame-06-360.webp 360w, /samples/frame-06-720.webp 720w" sizes="(max-width: 620px) 33vw, 19vw" width="720" height="921" alt="A street vendor carrying lampshades on a cobbled road." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-c" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">06</span><span class="frame-reason">Listed under More posts</span></p>
+            </li>
+            <li class="frame">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" aria-label="Mark sample frame 07" />
+                <span class="frame-plate"><img src="/samples/frame-07-720.webp" srcset="/samples/frame-07-360.webp 360w, /samples/frame-07-720.webp 720w" sizes="(max-width: 620px) 33vw, 19vw" width="720" height="597" alt="A quiet boulevard lined with trees and a fence." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-a" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">07</span><span class="frame-reason">Different date: 1907</span></p>
+            </li>
+            <li class="frame">
+              <label class="frame-hit">
+                <input class="frame-check" type="checkbox" aria-label="Mark sample frame 08" />
+                <span class="frame-plate"><img src="/samples/frame-08-720.webp" srcset="/samples/frame-08-360.webp 360w, /samples/frame-08-720.webp 720w" sizes="(max-width: 620px) 33vw, 19vw" width="720" height="585" alt="A shop front stacked with goods, with its shutters folded open." decoding="async" loading="lazy" /></span>
+                <svg class="frame-mark" viewBox="0 0 500 600" aria-hidden="true"><use href="#mark-b" /></svg>
+                <span class="frame-box" aria-hidden="true"><svg viewBox="0 0 14 14"><use href="#tick" /></svg></span>
+              </label>
+              <p class="frame-caption"><span class="frame-number">08</span><span class="frame-reason">Listed under More posts</span></p>
+            </li>
+            </ul>
+          </div>
+          <div class="tally">
+            <output data-tally>2 frames marked</output>
+            <p>Nothing is chosen until you mark it. In the collector, you download the marked frames from here, one file each.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="how" id="how" aria-labelledby="how-title">
+        <h2 id="how-title">Everything we found. Nothing chosen for you.</h2>
+
+        <ol class="steps">
+          <li>
+            <span class="step-number" aria-hidden="true">1</span>
+            <h3>Paste a link</h3>
+            <p>Copy the link of a public Instagram post or profile and paste it into the collector.</p>
+          </li>
+          <li>
+            <span class="step-number" aria-hidden="true">2</span>
+            <h3>Review the frames</h3>
+            <p>We lay out what we find as numbered, uncropped frames. Likely post images come first. Thumbnails of the account’s other posts sit below the line, and profile pictures are left out. The sort is an estimate, so each frame shows what it rests on.</p>
+          </li>
+          <li>
+            <span class="step-number" aria-hidden="true">3</span>
+            <h3>Download what you marked</h3>
+            <p>Mark the frames you want and download them. Nothing is selected by default, and nothing downloads until you ask.</p>
+          </li>
+        </ol>
+
+        <div class="terms">
+          <h3>Before you start</h3>
+          <dl>
+            <div>
+              <dt>Public pages only</dt>
+              <dd>Private accounts and removed posts won’t work, and we never ask for your Instagram login.</dd>
+            </div>
+            <div>
+              <dt>Profiles show a few posts</dt>
+              <dd>A profile link returns the handful of recent posts Instagram shows publicly, not the whole account.</dd>
+            </div>
+            <div>
+              <dt>Results can be incomplete</dt>
+              <dd>A carousel can come back short. We can’t always tell how many images a post holds, so we never call a set complete.</dd>
+            </div>
+            <div>
+              <dt>Images, not video</dt>
+              <dd>A Reel link may return a still image. Video isn’t supported.</dd>
+            </div>
+            <div>
+              <dt>Your link leaves this page</dt>
+              <dd>The post link goes to our server and to Jina Reader, a public page reader. Images pass through our server so their bytes can be checked. We don’t store them or keep a history. A short-lived cookie ties your results to this browser.</dd>
+            </div>
+            <div>
+              <dt>Save only what you may</dt>
+              <dd>Use Insta Luck for images you’re authorized to save.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="final" aria-labelledby="final-title">
+        <h2 id="final-title">Bring a post link.</h2>
+        <a class="button" href="/app">Open collector</a>
+      </section>
+    </main>
+
+    <footer class="colophon">
+      <div class="colophon-links">
+        <p><a class="link" href="https://github.com/Lesz-Xi/insta-luck">Source on GitHub</a></p>
+        <p>Not affiliated with Instagram or Meta.</p>
+      </div>
+      <div>
+        <p>Sample photographs by Jean-Eugène-Auguste Atget, The Art Institute of Chicago, CC0. Frames 01–05: Versailles, Bosquet de la Colonnade; Versailles, Coin de Parc (three prints); Versailles, Bosquet de l’Arc de Triomphe, all 1904. Frame 06: Marchand abat-jours, 1899/1900. Frame 07: Porte de Gentilly, Bd Kellermann, 1907. Frame 08: Untitled, 1898. Their labels here illustrate the interface; none of these photographs comes from Instagram.</p>
+      </div>
+    </footer>
+  </body>
+</html>

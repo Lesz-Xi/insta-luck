@@ -3,7 +3,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { errorMessage } from "./errors.js";
 import { normalizeInstagramUrl } from "./instagramUrl.js";
 import { downloadCandidate } from "./download/downloader.js";
-import { assertSafeMediaUrl } from "./download/safeUrl.js";
+import { safeFetch } from "./download/safeFetch.js";
 import { verifyImageBytes } from "./download/verifyImage.js";
 import { PublicReaderResolver } from "./resolvers/publicReaderResolver.js";
 import { defaultCollectionRoot, defaultLedgerPath } from "./storage/paths.js";
@@ -29,6 +29,7 @@ interface ClientCandidate {
   readonly carouselIndex?: number;
 }
 
+const PREVIEW_MAX_BYTES = 50 * 1024 * 1024;
 const candidateCache = new Map<string, MediaCandidate>();
 const collectionRoot = defaultCollectionRoot();
 const ledgerPath = defaultLedgerPath(collectionRoot);
@@ -41,7 +42,7 @@ const server = createServer((request, response) => {
 });
 
 server.listen(port, () => {
-  console.log(`Photography Collector running at http://localhost:${port}`);
+  console.log(`Insta Luck local collector running at http://localhost:${port}`);
 });
 
 async function route(request: IncomingMessage, response: ServerResponse): Promise<void> {
@@ -143,18 +144,12 @@ async function handleMediaProxy(pathname: string, response: ServerResponse): Pro
     return;
   }
 
-  const url = await assertSafeMediaUrl(candidate.remoteUrl);
-  const upstream = await fetch(url, {
-    headers: { "user-agent": "Mozilla/5.0 photography-collector/0.1" },
-    signal: AbortSignal.timeout(30_000)
+  const { bytes } = await safeFetch(candidate.remoteUrl, {
+    maxBytes: PREVIEW_MAX_BYTES,
+    timeoutMs: 30_000,
+    headers: { "user-agent": "Mozilla/5.0 photography-collector/0.1" }
   });
 
-  if (!upstream.ok) {
-    sendJson(response, upstream.status, { message: `Media fetch failed with status ${upstream.status}.` });
-    return;
-  }
-
-  const bytes = new Uint8Array(await upstream.arrayBuffer());
   const verified = verifyImageBytes(bytes);
   if (verified === undefined) {
     sendJson(response, 415, { message: "Resolved media is not a supported image." });

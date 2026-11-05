@@ -19,6 +19,53 @@ describe("normalizeInstagramUrl", () => {
     );
   });
 
+  it.each([
+    ["https://www.instagram.com/someuser/p/ABC_123-def/", "https://www.instagram.com/p/ABC_123-def/", "post"],
+    ["https://www.instagram.com/someuser/reel/ABC_123-def/?igsh=x", "https://www.instagram.com/reel/ABC_123-def/", "reel"],
+    ["https://www.instagram.com/reels/ABC_123-def/", "https://www.instagram.com/reel/ABC_123-def/", "reel"],
+    ["https://www.instagram.com/tv/ABC_123-def/", "https://www.instagram.com/p/ABC_123-def/", "post"],
+    ["https://m.instagram.com/p/ABC_123-def/", "https://www.instagram.com/p/ABC_123-def/", "post"],
+    ["https://instagr.am/p/ABC_123-def/", "https://www.instagram.com/p/ABC_123-def/", "post"]
+  ])("normalizes %s", (url, canonicalUrl, routeType) => {
+    expect(normalizeInstagramUrl(url)).toMatchObject({ canonicalUrl, routeType });
+  });
+
+  it.each([
+    ["https://www.instagram.com/nasa/", "nasa"],
+    ["https://www.instagram.com/nasa", "nasa"],
+    ["https://instagram.com/NASA/?hl=en", "nasa"],
+    ["https://m.instagram.com/nasa/", "nasa"],
+    ["https://instagr.am/nasa", "nasa"],
+    ["https://www.instagram.com/nasa/tagged/", "nasa"],
+    ["https://www.instagram.com/nasa/reels/", "nasa"],
+    ["https://www.instagram.com/_u/nasa/", "nasa"],
+    ["https://www.instagram.com/some.user_name/", "some.user_name"]
+  ])("reads %s as the profile of %s", (url, username) => {
+    expect(normalizeInstagramUrl(url)).toMatchObject({
+      canonicalUrl: `https://www.instagram.com/${username}/`,
+      shortcode: username,
+      routeType: "profile"
+    });
+  });
+
+  it.each([
+    "https://www.instagram.com/",
+    "https://www.instagram.com/explore/",
+    "https://www.instagram.com/explore/tags/space/",
+    "https://www.instagram.com/stories/nasa/123/",
+    "https://www.instagram.com/accounts/login/",
+    "https://www.instagram.com/reels/",
+    "https://www.instagram.com/direct/inbox/",
+    "https://www.instagram.com/not%20a%20user/"
+  ])("refuses %s, which isn't an account", (url) => {
+    expect(() => normalizeInstagramUrl(url)).toThrow(/post, Reel and profile/);
+  });
+
+  it("rejects a post route with no code rather than reading it as a profile", () => {
+    expect(() => normalizeInstagramUrl("https://www.instagram.com/p/")).toThrow(/shortcode/);
+    expect(() => normalizeInstagramUrl("https://www.instagram.com/p/!/")).toThrow(/shortcode/);
+  });
+
   it("rejects non-Instagram URLs", () => {
     expect(() => normalizeInstagramUrl("https://example.com/p/TEST_CODE_1/")).toThrow(/Unsupported Instagram host/);
   });

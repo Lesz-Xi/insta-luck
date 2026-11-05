@@ -1,10 +1,9 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
-import { CollectorError } from "../errors.js";
 import type { CollectionLedgerEntry, DownloadResult, MediaCandidate } from "../types.js";
 import { appendLedgerEntry, readLedger } from "../storage/ledger.js";
 import { filenameForCandidate } from "../storage/naming.js";
-import { assertSafeMediaUrl } from "./safeUrl.js";
+import { safeFetch, type Transport } from "./safeFetch.js";
 import { sha256Bytes } from "./hash.js";
 import { checkDuplicate, checkFilesystemDuplicate } from "./dedupe.js";
 import { verifyImageBytes } from "./verifyImage.js";
@@ -16,13 +15,23 @@ export interface DownloadOptions {
   readonly overwrite?: boolean;
   readonly maxBytes?: number;
   readonly resolveDns?: boolean;
+  /** Replaces the network, for tests. */
+  readonly transport?: Transport;
 }
 
 const DEFAULT_MAX_BYTES = 50 * 1024 * 1024;
 const MAX_REDIRECTS = 5;
+const DOWNLOAD_TIMEOUT_MS = 30_000;
 
 export async function downloadCandidate(candidate: MediaCandidate, options: DownloadOptions): Promise<DownloadResult> {
-  const bytes = await fetchSafeBytes(candidate.remoteUrl, options.maxBytes ?? DEFAULT_MAX_BYTES, options.resolveDns, 0);
+  const { bytes } = await safeFetch(candidate.remoteUrl, {
+    maxBytes: options.maxBytes ?? DEFAULT_MAX_BYTES,
+    maxRedirects: MAX_REDIRECTS,
+    timeoutMs: DOWNLOAD_TIMEOUT_MS,
+    headers: { "user-agent": "Mozilla/5.0 photography-collector/0.1" },
+    ...(options.resolveDns === undefined ? {} : { resolveDns: options.resolveDns }),
+    ...(options.transport === undefined ? {} : { transport: options.transport })
+  });
   const verified = verifyImageBytes(bytes);
   if (verified === undefined) {
     return {
@@ -104,42 +113,6 @@ export async function downloadCandidate(candidate: MediaCandidate, options: Down
     mimeType: verified.mimeType,
     filename
   };
-}
-
-async function fetchSafeBytes(urlString: string, maxBytes: number, resolveDns: boolean | undefined, redirects: number): Promise<Uint8Array> {
-  if (redirects > MAX_REDIRECTS) {
-    throw new CollectorError("too_many_redirects", "Too many redirects while downloading media.");
-  }
-
-  const url = await assertSafeMediaUrl(urlString, resolveDns === undefined ? {} : { resolveDns });
-  const response = await fetch(url, {
-    redirect: "manual",
-    headers: { "user-agent": "Mozilla/5.0 photography-collector/0.1" },
-    signal: AbortSignal.timeout(30_000)
-  });
-
-  if ([301, 302, 303, 307, 308].includes(response.status)) {
-    const location = response.headers.get("location");
-    if (location === null) throw new CollectorError("redirect_missing_location", "Redirect response had no Location header.");
-    const next = new URL(location, url).toString();
-    return fetchSafeBytes(next, maxBytes, resolveDns, redirects + 1);
-  }
-
-  if (!response.ok) {
-    throw new CollectorError("download_failed", `Media download failed with status ${response.status}.`);
-  }
-
-  const contentLength = response.headers.get("content-length");
-  if (contentLength !== null && Number.parseInt(contentLength, 10) > maxBytes) {
-    throw new CollectorError("file_too_large", `Media exceeds max byte limit of ${maxBytes}.`);
-  }
-
-  const arrayBuffer = await response.arrayBuffer();
-  if (arrayBuffer.byteLength > maxBytes) {
-    throw new CollectorError("file_too_large", `Media exceeds max byte limit of ${maxBytes}.`);
-  }
-
-  return new Uint8Array(arrayBuffer);
 }
 
 function isNodeErrno(error: unknown, code: string): boolean {
