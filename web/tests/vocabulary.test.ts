@@ -30,7 +30,7 @@ describe("one vocabulary across both routes", () => {
   });
 
   it("makes no claim the product can't support", () => {
-    for (const claim of [/saved to your device/i, /original quality/i, /\bzip\b/i, /download all/i, /complete carousel/i]) {
+    for (const claim of [/saved to your device/i, /original quality/i, /download all/i, /complete carousel/i]) {
       expect(landing).not.toMatch(claim);
       expect(workspace).not.toMatch(claim);
     }

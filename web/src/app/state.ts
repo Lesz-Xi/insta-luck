@@ -12,6 +12,8 @@ export type Preview = "loading" | "ready" | "failed";
 export type Delivery =
   | { readonly tag: "queued" }
   | { readonly tag: "fetching" }
+  /** Its bytes are here, waiting for the rest of the batch. Nothing has reached the browser's downloads yet. */
+  | { readonly tag: "collected" }
   | { readonly tag: "started" }
   | { readonly tag: "failed"; readonly message: string };
 
@@ -48,6 +50,8 @@ export interface AppState {
   readonly previews: ReadonlyMap<string, Preview>;
   readonly deliveries: ReadonlyMap<string, Delivery>;
   readonly batchActive: boolean;
+  /** The latest batch: what it covered, and how many frames went into its ZIP, if it made one. */
+  readonly batch: { readonly ids: readonly string[]; readonly bundled: number };
 }
 
 export const initialState: AppState = {
@@ -57,7 +61,8 @@ export const initialState: AppState = {
   selected: new Set(),
   previews: new Map(),
   deliveries: new Map(),
-  batchActive: false
+  batchActive: false,
+  batch: { ids: [], bundled: 0 }
 };
 
 export type Action =
@@ -76,7 +81,7 @@ export type Action =
   | { readonly type: "previewSettled"; readonly id: string; readonly preview: Preview }
   | { readonly type: "batchStarted"; readonly ids: readonly string[] }
   | { readonly type: "delivery"; readonly id: string; readonly delivery: Delivery }
-  | { readonly type: "batchFinished" };
+  | { readonly type: "batchFinished"; readonly bundled?: number };
 
 function withEntry<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): ReadonlyMap<K, V> {
   return new Map(map).set(key, value);
@@ -195,7 +200,7 @@ export function reduce(state: AppState, action: Action): AppState {
     case "batchStarted": {
       const deliveries = new Map(state.deliveries);
       for (const id of action.ids) deliveries.set(id, { tag: "queued" });
-      return { ...state, deliveries, batchActive: true };
+      return { ...state, deliveries, batchActive: true, batch: { ids: action.ids, bundled: 0 } };
     }
 
     case "delivery":
@@ -205,7 +210,7 @@ export function reduce(state: AppState, action: Action): AppState {
 
     case "batchFinished": {
       const deliveries = new Map([...state.deliveries].filter(([, delivery]) => delivery.tag !== "queued"));
-      return { ...state, deliveries, batchActive: false };
+      return { ...state, deliveries, batchActive: false, batch: { ...state.batch, bundled: action.bundled ?? 0 } };
     }
   }
 }

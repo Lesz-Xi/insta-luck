@@ -1,6 +1,6 @@
 import type { ClientFrame } from "../../../hosted/contract.js";
 import { wireExposure } from "../exposure.js";
-import { fetchFile, fetchOpen, handOff, previewUrl, ProblemError, resolvePost } from "./api.js";
+import { fetchFile, fetchOpen, handOff, previewUrl, ProblemError, resolvePost, type DeliveredFile } from "./api.js";
 import {
   captionFor,
   closedNotice,
@@ -18,7 +18,8 @@ import {
   sheetTitle,
   statusLine,
   trayCount,
-  trayStatus
+  trayStatus,
+  zipName
 } from "./copy.js";
 import { parseLinks } from "./links.js";
 import {
@@ -37,9 +38,8 @@ import {
   type Roll,
   type SheetLink
 } from "./state.js";
+import { buildZip } from "./zip.js";
 
-/** Browsers can drop downloads requested in the same instant. */
-const DOWNLOAD_SPACING_MS = 350;
 /** How long the button's receipt stays before the idle label comes home. */
 const RECEIPT_MS = 1900;
 
@@ -281,6 +281,8 @@ function syncFrame(view: FrameView): void {
     view.state.replaceChildren();
   } else if (delivery.tag === "fetching") {
     view.state.textContent = "Downloading…";
+  } else if (delivery.tag === "collected") {
+    view.state.textContent = "Collected";
   } else if (delivery.tag === "started") {
     view.state.textContent = "Download started";
   } else {
@@ -618,19 +620,13 @@ function addLinks(raw: string): void {
   if (taken.length > 0 || revived.length > 0) ui.input.value = leftover.join("\n");
 }
 
-function pause(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, milliseconds);
-  });
-}
-
 function placedFrame(id: string): PlacedFrame | undefined {
   return sheetFrames(state).find(({ frame }) => frame.id === id);
 }
 
-function showReceipt(started: number): void {
+function showReceipt(started: number, bundled: number): void {
   window.clearTimeout(receiptTimer);
-  ui.downloadReceipt.textContent = receiptFor(started);
+  ui.downloadReceipt.textContent = receiptFor(started, bundled);
   ui.download.dataset.receipt = "on";
   receiptTimer = window.setTimeout(() => {
     delete ui.download.dataset.receipt;
@@ -642,10 +638,21 @@ function needsNewRead(problem: Problem | undefined): boolean {
   return problem?.code === "ref_expired" || problem?.code === "ref_invalid" || problem?.code === "source_gone";
 }
 
-async function deliver(ids: readonly string[]): Promise<void> {
-  if (ids.length === 0) return;
-  dispatch({ type: "batchStarted", ids });
-  let started = 0;
+interface Collected {
+  readonly id: string;
+  readonly file: DeliveredFile;
+}
+
+async function zipped(frames: readonly Collected[]): Promise<DeliveredFile> {
+  const entries = await Promise.all(
+    frames.map(async ({ file }) => ({ name: file.filename, bytes: new Uint8Array(await file.blob.arrayBuffer()) }))
+  );
+  return { blob: buildZip(entries), filename: zipName(frames.length) };
+}
+
+/** Fetches every frame first, so a failure costs that frame and not the batch. Returns what arrived, and what didn't. */
+async function collect(ids: readonly string[]): Promise<{ readonly frames: readonly Collected[]; readonly failed: number }> {
+  const frames: Collected[] = [];
   let failed = 0;
 
   for (const id of ids) {
@@ -661,13 +668,8 @@ async function deliver(ids: readonly string[]): Promise<void> {
 
     dispatch({ type: "delivery", id, delivery: { tag: "fetching" } });
     try {
-      const file = await fetchFile(placed.frame);
-      // Removed while it was on the way: no longer wanted.
-      if (placedFrame(id) === undefined) continue;
-      handOff(file);
-      started += 1;
-      dispatch({ type: "delivery", id, delivery: { tag: "started" } });
-      await pause(DOWNLOAD_SPACING_MS);
+      frames.push({ id, file: await fetchFile(placed.frame) });
+      dispatch({ type: "delivery", id, delivery: { tag: "collected" } });
     } catch (error) {
       failed += 1;
       const problem = error instanceof ProblemError ? error.problem : undefined;
@@ -679,9 +681,37 @@ async function deliver(ids: readonly string[]): Promise<void> {
       dispatch({ type: "delivery", id, delivery: { tag: "failed", message: problem?.message ?? "This download failed." } });
     }
   }
+  return { frames, failed };
+}
 
-  dispatch({ type: "batchFinished" });
-  if (started > 0 && failed === 0) showReceipt(started);
+async function deliver(ids: readonly string[]): Promise<void> {
+  if (ids.length === 0) return;
+  dispatch({ type: "batchStarted", ids });
+
+  const collected = await collect(ids);
+  // A frame removed while it was on the way is no longer wanted.
+  const frames = collected.frames.filter(({ id }) => placedFrame(id) !== undefined);
+  let { failed } = collected;
+  let bundled = 0;
+
+  try {
+    const only = frames.length === 1 ? frames[0] : undefined;
+    if (only !== undefined) {
+      handOff(only.file);
+    } else if (frames.length > 1) {
+      handOff(await zipped(frames));
+      bundled = frames.length;
+    }
+    for (const { id } of frames) dispatch({ type: "delivery", id, delivery: { tag: "started" } });
+  } catch {
+    failed += frames.length;
+    for (const { id } of frames) {
+      dispatch({ type: "delivery", id, delivery: { tag: "failed", message: "This download failed." } });
+    }
+  }
+
+  dispatch({ type: "batchFinished", bundled });
+  if (frames.length > 0 && failed === 0) showReceipt(frames.length, bundled);
 }
 
 function openLoupe(id: string, opener: HTMLElement): void {

@@ -16,10 +16,11 @@ You do the browsing. Paste a post, Reel or profile, or a list of them, and each 
 - Any post, Reel or profile link works as input, including `/<user>/p/…`, `m.instagram.com` and `instagr.am` forms. Stories don't, because they need a login.
 - A profile link is read from Instagram's public embed page, so it returns a few recent posts, not the whole account. Any older post is reachable by pasting its own link.
 - A sheet holds 20 links, read one at a time. There is no download-all and no walking through an account, on purpose: see the terms note in [docs/DEPLOY.md](docs/DEPLOY.md).
+- One marked frame downloads as an image. Several download as one ZIP, built in your browser, holding only what you marked.
 - Results can be incomplete, so no set is ever called complete.
 - The sort is an estimate. Likely post images come first, each frame shows what its place rests on, and profile pictures are left out.
 - Images only. A Reel link may return a still, not the video.
-- Hosted downloads are individual files handed to your browser. The hosted tool keeps no archive and no history; that belongs to the local CLI.
+- The hosted tool keeps no archive and no history; that belongs to the local CLI.
 - Your link goes to the server and to [Jina Reader](https://github.com/jina-ai/reader), a public page reader.
 - Save only what you're authorized to save. Insta Luck isn't affiliated with Instagram or Meta.
 

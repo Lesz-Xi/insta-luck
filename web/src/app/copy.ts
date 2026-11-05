@@ -155,33 +155,41 @@ export function trayCount(state: AppState): string {
 }
 
 export function trayStatus(state: AppState): string {
-  const deliveries = [...state.deliveries.values()];
-  const started = deliveries.filter((delivery) => delivery.tag === "started").length;
-  const failed = failedIds(state).length;
+  const deliveries = state.batch.ids.flatMap((id) => {
+    const delivery = state.deliveries.get(id);
+    return delivery === undefined ? [] : [delivery];
+  });
+  const count = (tag: "collected" | "started" | "failed"): number => deliveries.filter((delivery) => delivery.tag === tag).length;
+  const started = count("started");
+  const failed = count("failed");
+  const { bundled } = state.batch;
 
   if (state.batchActive) {
-    const finished = started + failed;
-    return `Downloading ${Math.min(finished + 1, deliveries.length)} of ${deliveries.length}…`;
+    if (deliveries.length < 2) return "Downloading…";
+    const finished = started + failed + count("collected");
+    return `Collecting ${Math.min(finished + 1, deliveries.length)} of ${deliveries.length}…`;
   }
-  if (failed > 0 && started > 0) {
-    return `${plural(started, "download", "downloads")} started. ${failed} failed.`;
+  if (bundled > 0) {
+    return failed > 0 ? `${bundled} frames in one ZIP. ${failed} failed.` : `${bundled} frames in one ZIP. Check your browser’s downloads.`;
   }
+  if (failed > 0 && started > 0) return `${plural(started, "download", "downloads")} started. ${failed} failed.`;
   if (failed > 0) return `${plural(failed, "download", "downloads")} failed.`;
-  if (started > 0) {
-    return started === 1
-      ? "Download started. Check your browser’s downloads."
-      : `${started} downloads started. Check your browser’s downloads.`;
-  }
+  if (started > 0) return "Download started. Check your browser’s downloads.";
 
-  const waiting = selectedInSheetOrder(state).length - deliverableIds(state).length;
+  const marked = selectedInSheetOrder(state).length;
+  const waiting = marked - deliverableIds(state).length;
   if (waiting > 0) return `${plural(waiting, "marked frame needs", "marked frames need")} its link read again.`;
-  if (selectedInSheetOrder(state).length > 1) return "Your browser may ask to allow several downloads.";
-  return "";
+  return deliverableIds(state).length > 1 ? "These arrive as one ZIP." : "";
 }
 
 /** The receipt on the button itself: only after the bytes really reached the browser. */
-export function receiptFor(started: number): string {
-  return started === 1 ? "1 started" : `${started} started`;
+export function receiptFor(started: number, bundled: number): string {
+  return bundled > 0 ? `${bundled} in one ZIP` : `${started} started`;
+}
+
+/** Numbered so a second batch doesn't look like the first. */
+export function zipName(frames: number): string {
+  return `insta-luck-${frames}-frames.zip`;
 }
 
 export interface Notice {

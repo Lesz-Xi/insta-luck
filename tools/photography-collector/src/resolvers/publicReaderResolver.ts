@@ -134,9 +134,9 @@ export class PublicReaderResolver implements MediaResolver {
     const url = buildReaderUrl(input);
     const first = readMarkdown(await this.fetchText(url));
     // The reader can keep a render taken before the photos loaded: the caption and
-    // avatars, and nothing else. One fresh read is enough to tell that from a page
-    // that really holds no images, and a profile's embed page doesn't do this.
-    if (input.routeType === "profile" || first.some((raw) => !isPicture(raw))) return classifyCandidates(input, first);
+    // avatars, and nothing else. A profile has come back empty once too, with no error.
+    // One fresh read is enough to tell that from a page that really holds no images.
+    if (first.some((raw) => !isPicture(raw))) return classifyCandidates(input, first);
     return classifyCandidates(input, readMarkdown(await this.fetchText(url, { fresh: true })));
   }
 }

@@ -123,13 +123,14 @@ describe("PublicReaderResolver", () => {
       await expect(resolver.resolve(post)).rejects.toMatchObject({ code: "login_required" });
     });
 
-    it("isn't applied to a profile, whose embed page has no such failure", async () => {
-      let calls = 0;
-      await new PublicReaderResolver(async () => {
-        calls += 1;
-        return thin;
+    it("applies to a profile too, which has come back empty with no error", async () => {
+      const calls: (boolean | undefined)[] = [];
+      const candidates = await new PublicReaderResolver(async (_url, options) => {
+        calls.push(options?.fresh);
+        return options?.fresh === true ? `${thin}\n![Image 3: A caption.](https://scontent-sea5-1.cdninstagram.com/v/post.jpg)` : thin;
       }).resolve(normalizeInstagramUrl("https://www.instagram.com/someone/"));
-      expect(calls).toBe(1);
+      expect(calls).toEqual([undefined, true]);
+      expect(candidates.some((candidate) => candidate.basis === "shown_on_profile")).toBe(true);
     });
   });
 

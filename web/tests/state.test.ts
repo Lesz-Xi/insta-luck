@@ -362,8 +362,18 @@ describe("downloading", () => {
     expect(deliverableIds(state)).toEqual(["a1", "b1"]);
   });
 
-  it("warns that a browser may ask about several downloads", () => {
-    expect(trayStatus(play(...loaded))).toContain("may ask to allow several");
+  it("says several frames arrive as one ZIP, and one doesn't", () => {
+    expect(trayStatus(play(...loaded))).toBe("These arrive as one ZIP.");
+    expect(trayStatus(play(...loaded, marked("3", false)))).toBe("");
+  });
+
+  it("only counts frames that can still be delivered towards a ZIP", () => {
+    const state = play(...read(A, reading([frame("a1")])), ...read(B, reading([frame("b1")])), marked("a1"), marked("b1"), {
+      type: "linkExpired",
+      key: B.key,
+      reason: "time"
+    });
+    expect(trayStatus(state)).toBe("1 marked frame needs its link read again.");
   });
 
   it("reports progress from real events", () => {
@@ -373,7 +383,62 @@ describe("downloading", () => {
       { type: "delivery", id: "1", delivery: { tag: "started" } },
       { type: "delivery", id: "3", delivery: { tag: "fetching" } }
     );
-    expect(trayStatus(state)).toBe("Downloading 2 of 2…");
+    expect(trayStatus(state)).toBe("Collecting 2 of 2…");
+  });
+
+  it("counts collected frames as progress, and a lone frame as a plain download", () => {
+    const state = play(
+      ...loaded,
+      { type: "batchStarted", ids: ["1", "3"] },
+      { type: "delivery", id: "1", delivery: { tag: "collected" } },
+      { type: "delivery", id: "3", delivery: { tag: "fetching" } }
+    );
+    expect(trayStatus(state)).toBe("Collecting 2 of 2…");
+    expect(trayStatus(play(...loaded, { type: "batchStarted", ids: ["1"] }))).toBe("Downloading…");
+  });
+
+  it("names a ZIP once it has been handed over, and what didn't make it", () => {
+    const whole = play(
+      ...loaded,
+      { type: "batchStarted", ids: ["1", "3"] },
+      { type: "delivery", id: "1", delivery: { tag: "started" } },
+      { type: "delivery", id: "3", delivery: { tag: "started" } },
+      { type: "batchFinished", bundled: 2 }
+    );
+    expect(trayStatus(whole)).toBe("2 frames in one ZIP. Check your browser’s downloads.");
+
+    const partial = play(
+      ...read(A, reading([frame("1"), frame("2", 2), frame("3", 3)])),
+      marked("1"),
+      marked("2"),
+      marked("3"),
+      { type: "batchStarted", ids: ["1", "2", "3"] },
+      { type: "delivery", id: "1", delivery: { tag: "started" } },
+      { type: "delivery", id: "2", delivery: { tag: "started" } },
+      { type: "delivery", id: "3", delivery: { tag: "failed", message: "No." } },
+      { type: "batchFinished", bundled: 2 }
+    );
+    expect(trayStatus(partial)).toBe("2 frames in one ZIP. 1 failed.");
+  });
+
+  it("reports the latest batch, not every batch so far", () => {
+    const state = play(
+      ...loaded,
+      { type: "batchStarted", ids: ["1", "3"] },
+      { type: "delivery", id: "1", delivery: { tag: "started" } },
+      { type: "delivery", id: "3", delivery: { tag: "failed", message: "No." } },
+      { type: "batchFinished" },
+      { type: "batchStarted", ids: ["3"] },
+      { type: "delivery", id: "3", delivery: { tag: "started" } },
+      { type: "batchFinished" }
+    );
+    expect(trayStatus(state)).toBe("Download started. Check your browser’s downloads.");
+    expect(state.deliveries.get("1")).toEqual({ tag: "started" });
+  });
+
+  it("writes a receipt that says what happened", () => {
+    expect(receiptFor(1, 0)).toBe("1 started");
+    expect(receiptFor(4, 4)).toBe("4 in one ZIP");
   });
 
   it("says a download started, never that a file was saved", () => {
@@ -385,8 +450,7 @@ describe("downloading", () => {
     );
     expect(trayStatus(state)).toBe("Download started. Check your browser’s downloads.");
     expect(trayStatus(state).toLowerCase()).not.toContain("saved");
-    expect(receiptFor(1).toLowerCase()).not.toContain("saved");
-    expect(receiptFor(3)).toBe("3 started");
+    expect(receiptFor(1, 0).toLowerCase()).not.toContain("saved");
   });
 
   it("keeps successes and the selection after a partial failure, and retries only what failed", () => {

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
@@ -23,6 +24,12 @@ const roll = (page: Page, label: string) => page.locator(`.roll[data-key*="${lab
 async function showResults(page: Page, shortcode = "FIXOK01"): Promise<void> {
   await find(page, shortcode);
   await expect(roll(page, shortcode)).toHaveAttribute("data-status", "ready");
+}
+
+/** Read by the system's own tool, so the archive is judged by something other than the code that wrote it. */
+function zipEntries(path: string): readonly string[] {
+  execFileSync("unzip", ["-tq", path]);
+  return execFileSync("unzip", ["-Z1", path], { encoding: "utf8" }).trim().split("\n");
 }
 
 const markFrame = (page: Page, number: string) => page.getByLabel(new RegExp(`^Mark frame ${number} from`));
@@ -216,17 +223,17 @@ test.describe("one sheet from several links", () => {
     await expect(page.locator(".link-row").nth(1)).toHaveAttribute("data-marked", "false");
   });
 
-  test("downloads across links, in sheet order, named for their own link", async ({ page }) => {
+  test("downloads across links as one ZIP, in sheet order, each named for its own link", async ({ page }) => {
     await showResults(page, "FIXPROF");
     await showResults(page, "FIXSLOW1");
     await roll(page, "FIXSLOW1").getByLabel(/^Mark frame 01/).check({ force: true });
     await roll(page, "FIXPROF").getByLabel(/^Mark frame 02/).check({ force: true });
 
-    const names: string[] = [];
-    page.on("download", (download) => names.push(download.suggestedFilename()));
+    const pending = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download selected" }).click();
-    await expect.poll(() => names.length).toBe(2);
-    expect(names).toEqual(["insta-luck-FIXPROF-02.webp", "insta-luck-FIXSLOW1-01.webp"]);
+    const download = await pending;
+    expect(download.suggestedFilename()).toBe("insta-luck-2-frames.zip");
+    expect(zipEntries(await download.path())).toEqual(["insta-luck-FIXPROF-02.webp", "insta-luck-FIXSLOW1-01.webp"]);
   });
 
   test("lets one link fail without touching the others", async ({ page }) => {
@@ -582,18 +589,59 @@ test.describe("downloads", () => {
     await expect(page.getByRole("button", { name: "Download selected" })).not.toHaveAttribute("data-receipt", "on");
   });
 
-  test("sends a selection as individual files, in sheet order", async ({ page }) => {
+  test("sends several frames as one verified ZIP, with one save and the same bytes", async ({ page }) => {
     await showResults(page);
     await markFrame(page, "03").check({ force: true });
     await markFrame(page, "01").check({ force: true });
-    await expect(page.locator("#tray-status")).toContainText("may ask to allow several");
+    await expect(page.locator("#tray-status")).toHaveText("These arrive as one ZIP.");
 
-    const names: string[] = [];
-    page.on("download", (download) => names.push(download.suggestedFilename()));
+    const downloads: string[] = [];
+    page.on("download", (download) => downloads.push(download.suggestedFilename()));
+    const pending = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download selected" }).click();
-    await expect.poll(() => names.length).toBe(2);
-    expect(names).toEqual(["insta-luck-FIXOK01-01.webp", "insta-luck-FIXOK01-03.webp"]);
-    await expect(page.locator("#tray-status")).toContainText("2 downloads started.");
+    const path = await (await pending).path();
+
+    expect(zipEntries(path)).toEqual(["insta-luck-FIXOK01-01.webp", "insta-luck-FIXOK01-03.webp"]);
+    const archive = readFileSync(path);
+    for (const name of ["frame-01-720.webp", "frame-03-720.webp"]) {
+      expect(archive.includes(readFileSync(resolve(SAMPLES, name)))).toBe(true);
+    }
+
+    await expect(page.locator("#tray-status")).toHaveText("2 frames in one ZIP. Check your browser’s downloads.");
+    await expect(page.locator("#download-receipt")).toHaveText("2 in one ZIP");
+    await expect(page.locator(".sheet.is-post .frame").first().locator(".frame-state")).toHaveText("Download started");
+    expect(downloads).toEqual(["insta-luck-2-frames.zip"]);
+  });
+
+  test("a frame that fails is left out of the ZIP, reported, and can be retried", async ({ page }) => {
+    await showResults(page, "FIXPART1");
+    await expect(page.locator(".sheet.is-post .frame-plate").nth(2)).toHaveAttribute("data-preview", "ready");
+    for (const number of ["01", "02", "03"]) await markFrame(page, number).check({ force: true });
+
+    const pending = page.waitForEvent("download");
+    const button = page.getByRole("button", { name: "Download selected" });
+    await button.click();
+    const download = await pending;
+    expect(zipEntries(await download.path())).toEqual(["insta-luck-FIXPART1-01.webp", "insta-luck-FIXPART1-02.webp"]);
+    await expect(page.locator("#tray-status")).toHaveText("2 frames in one ZIP. 1 failed.");
+    await expect(button).not.toHaveAttribute("data-receipt", "on");
+
+    const retry = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Retry failed" }).click();
+    expect((await retry).suggestedFilename()).toBe("insta-luck-FIXPART1-03.webp");
+    await expect(page.locator("#tray-status")).toHaveText("Download started. Check your browser’s downloads.");
+  });
+
+  test("gives a plain image, not a ZIP of one, when only one frame arrives", async ({ page }) => {
+    await showResults(page, "FIXPART1");
+    await expect(page.locator(".sheet.is-post .frame-plate").nth(2)).toHaveAttribute("data-preview", "ready");
+    await markFrame(page, "01").check({ force: true });
+    await markFrame(page, "03").check({ force: true });
+
+    const pending = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download selected" }).click();
+    expect((await pending).suggestedFilename()).toBe("insta-luck-FIXPART1-01.webp");
+    await expect(page.locator("#tray-status")).toHaveText("1 download started. 1 failed.");
   });
 
   test("keeps successes and retries only what failed", async ({ page }) => {
@@ -644,11 +692,9 @@ test.describe("downloads", () => {
     await page.getByRole("button", { name: "Read again" }).click();
     await expect(page.locator(".roll-notice")).toBeHidden();
 
-    const names: string[] = [];
-    page.on("download", (download) => names.push(download.suggestedFilename()));
+    const pending = page.waitForEvent("download");
     await page.getByRole("button", { name: "Retry failed" }).click();
-    await expect.poll(() => names.length).toBe(2);
-    expect(names).toEqual(["insta-luck-FIXOK01-01.webp", "insta-luck-FIXOK01-02.webp"]);
+    expect(zipEntries(await (await pending).path())).toEqual(["insta-luck-FIXOK01-01.webp", "insta-luck-FIXOK01-02.webp"]);
   });
 
   test("a stale image address sends you back to read the link, not to a dead end", async ({ page }) => {
