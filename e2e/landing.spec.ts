@@ -25,7 +25,8 @@ test.describe("landing", () => {
     await page.goto("/");
     await expect(page.getByText("not the whole account")).toBeAttached();
     await expect(page.getByText("Not affiliated with Instagram or Meta.")).toBeAttached();
-    await expect(page.getByText("Jean-Eugène-Auguste Atget")).toBeAttached();
+    await expect(page.getByText("The sample photographs are the maker’s own")).toBeAttached();
+    await expect(page.getByText("none of these photographs comes from Instagram")).toHaveCount(0);
   });
 
   test("survives a refresh on both routes", async ({ page }) => {

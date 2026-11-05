@@ -36,6 +36,13 @@ describe("one vocabulary across both routes", () => {
     }
   });
 
+  it("gives every sample photograph its real proportions and a description", () => {
+    const images = [...landing.matchAll(/<img src="\/samples\/frame-(\d\d)-360\.webp" width="360" height="(\d+)" alt="([^"]+)"/g)];
+    expect(images.length).toBeGreaterThanOrEqual(8);
+    for (const [, frame, height] of images) expect(height).toBe(frame === "07" ? "270" : "450");
+    expect(new Set(images.map((image) => image[1])).size).toBe(8);
+  });
+
   it("labels the sample as a sample", () => {
     expect(landing).toContain("This isn’t a live result.");
   });

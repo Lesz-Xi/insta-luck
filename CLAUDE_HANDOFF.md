@@ -126,6 +126,7 @@ This is new synthesis, not a clone of Instagram, Apple, Linear, or another site.
 - **Cut from the sources:** Folio's other routes and phone menu; the Lab's library, Find, Repertoire, Compose, View switch and 95% density; Direction A's mark and paper.
 - **Scroll and motion:** Feather on the landing only; native on `/app`. No trail. Rows open as a folio page turns. Reduced motion gives the same end state at once.
 - **Limits:** a sheet holds 20 links, read one at a time, and references last an hour instead of 15 minutes.
+- **The landing's samples are Chief's own photographs (Chief, 2026-11-05):** eight chosen by Chief, which supersedes "no photos copied from Chief's local collection" for those eight only. The rest of the collection and its ledger stay out of the repository. See `web/public/samples/PROVENANCE.md`.
 - **Several marked frames download as one ZIP (Chief, 2026-11-05):** one Save window per file was too much. It holds only what was marked, is built in the browser, and leaves out and reports a frame that fails. One marked frame stays a plain image.
 - **Profile pictures never appear (Chief, 2026-11-05):** an avatar isn't what anyone came for, on a profile any more than on a post. A profile with nothing to show says so in its notice.
 

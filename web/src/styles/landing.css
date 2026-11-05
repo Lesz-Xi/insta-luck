@@ -350,7 +350,8 @@ html.lenis {
   font-size: 11px;
 }
 
-.demo-strip .frame-caption {
+.demo-strip .frame-caption,
+.demo-pair .frame-caption {
   padding-top: 6px;
 }
 
