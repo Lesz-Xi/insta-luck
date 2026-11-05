@@ -12,7 +12,7 @@ interface ProblemSpec {
  * upstream URL, server path or stack trace has no route into a response.
  */
 const PROBLEMS: Record<ProblemCode, ProblemSpec> = {
-  closed: { status: 503, message: "The hosted collector isn’t open right now.", retryable: false },
+  closed: { status: 503, message: "Insta Luck isn’t open here right now.", retryable: false },
   invalid_request: { status: 400, message: "That request wasn’t understood.", retryable: false },
   payload_too_large: { status: 413, message: "That request is too large.", retryable: false },
   wrong_origin: { status: 403, message: "That request came from another site.", retryable: false },
@@ -41,13 +41,13 @@ const PROBLEMS: Record<ProblemCode, ProblemSpec> = {
   reader_unavailable: { status: 502, message: "The public reader couldn’t read this link. Try again.", retryable: true },
   ref_invalid: {
     status: 403,
-    message: "This selection doesn’t belong to this browser session. Find images again.",
+    message: "This link belongs to another browser session. Read it again.",
     retryable: false
   },
-  ref_expired: { status: 410, message: "This selection has expired. Find images again to continue.", retryable: false },
+  ref_expired: { status: 410, message: "This link has expired. Read it again to continue.", retryable: false },
   source_gone: {
     status: 502,
-    message: "Instagram’s image server no longer offers this file. Find images again.",
+    message: "Instagram’s image server no longer offers this file. Read the link again.",
     retryable: false
   },
   source_limited: {

@@ -70,8 +70,8 @@ export interface DeliveredFile {
   readonly filename: string;
 }
 
-export async function fetchFile(frame: ClientFrame, signal: AbortSignal): Promise<DeliveredFile> {
-  const response = await send(`/api/media/${encodeURIComponent(frame.ref)}?download=1`, { signal });
+export async function fetchFile(frame: ClientFrame): Promise<DeliveredFile> {
+  const response = await send(`/api/media/${encodeURIComponent(frame.ref)}?download=1`, {});
   if (!response.ok) throw new ProblemError(await problemFrom(response));
 
   const disposition = response.headers.get("content-disposition") ?? "";

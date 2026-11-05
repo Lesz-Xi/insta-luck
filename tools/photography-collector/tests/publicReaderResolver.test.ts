@@ -41,6 +41,117 @@ describe("PublicReaderResolver", () => {
     });
   });
 
+  it.each([
+    "https://www.instagram.com/accounts/login/?next=x",
+    "https://instagram.com/accounts/login/",
+    "https://www.instagram.com/challenge/?next=x"
+  ])("treats a landing on %s as a login wall", async (finalUrl) => {
+    const page = `Title: Instagram\n\nURL Source: x\n\nFinal URL: ${finalUrl}\n\nMarkdown Content:\n![Art](https://scontent-sea5-1.cdninstagram.com/v/art.jpg)`;
+    const resolver = new PublicReaderResolver(async () => page);
+    await expect(resolver.resolve(normalizeInstagramUrl("https://www.instagram.com/nasa/"))).rejects.toMatchObject({ code: "login_required" });
+  });
+
+  it("isn't fooled by a caption quoting a login address", async () => {
+    const page = [
+      "Title: A post about Final URL lines",
+      "Final URL: https://www.instagram.com/accounts/login/",
+      "",
+      "Final URL: https://www.instagram.com/p/ABCDE/",
+      "",
+      "Markdown Content:",
+      "Final URL: https://www.instagram.com/accounts/login/",
+      "![Image 1: Photo by Someone on June 24, 2024.](https://scontent-sea5-1.cdninstagram.com/v/photo.jpg)"
+    ].join("\n");
+    const resolver = new PublicReaderResolver(async () => page);
+    await expect(resolver.resolve(normalizeInstagramUrl("https://www.instagram.com/p/ABCDE/"))).resolves.toHaveLength(1);
+  });
+
+  it("leaves out Instagram's own interface art, which shares a host with real media", () => {
+    const page = [
+      "![Logo](https://static.cdninstagram.com/rsrc.php/v3/art/sprite.png)",
+      "![Image 1: A caption.](https://scontent-sea5-1.cdninstagram.com/v/photo.jpg)"
+    ].join("\n");
+    expect(extractMarkdownImageCandidates(page).map((candidate) => candidate.remoteUrl)).toEqual([
+      "https://scontent-sea5-1.cdninstagram.com/v/photo.jpg"
+    ]);
+  });
+
+  describe("a thin read", () => {
+    const post = normalizeInstagramUrl("https://www.instagram.com/p/ABCDE/");
+    const thin = "![Image 1: someone's profile picture](https://scontent-sea5-1.cdninstagram.com/v/t51.2885-19/me.jpg)";
+    const full = [
+      thin,
+      "![Image 5](https://scontent-sea5-1.cdninstagram.com/v/own.jpg)",
+      "More posts from someone",
+      "![Image 9: Photo by Someone on June 24, 2024.](https://scontent-sea5-1.cdninstagram.com/v/other.jpg)"
+    ].join("\n");
+
+    it("is read once more, fresh, when a post page came back with no images", async () => {
+      const calls: (boolean | undefined)[] = [];
+      const resolver = new PublicReaderResolver(async (_url, options) => {
+        calls.push(options?.fresh);
+        return options?.fresh === true ? full : thin;
+      });
+      const candidates = await resolver.resolve(post);
+      expect(calls).toEqual([undefined, true]);
+      expect(candidates.filter((candidate) => candidate.mediaKind === "post_image")).toHaveLength(1);
+    });
+
+    it("stays one read when the first was enough", async () => {
+      let calls = 0;
+      await new PublicReaderResolver(async () => {
+        calls += 1;
+        return full;
+      }).resolve(post);
+      expect(calls).toBe(1);
+    });
+
+    it("gives up after one fresh read, whatever it finds", async () => {
+      let calls = 0;
+      const candidates = await new PublicReaderResolver(async () => {
+        calls += 1;
+        return thin;
+      }).resolve(post);
+      expect(calls).toBe(2);
+      expect(candidates.every((candidate) => candidate.mediaKind === "profile_picture")).toBe(true);
+    });
+
+    it("still notices a login wall on the fresh read", async () => {
+      const resolver = new PublicReaderResolver(async (_url, options) =>
+        options?.fresh === true ? `Final URL: https://www.instagram.com/accounts/login/\n${full}` : thin
+      );
+      await expect(resolver.resolve(post)).rejects.toMatchObject({ code: "login_required" });
+    });
+
+    it("isn't applied to a profile, whose embed page has no such failure", async () => {
+      let calls = 0;
+      await new PublicReaderResolver(async () => {
+        calls += 1;
+        return thin;
+      }).resolve(normalizeInstagramUrl("https://www.instagram.com/someone/"));
+      expect(calls).toBe(1);
+    });
+  });
+
+  it("takes an unlabelled image above the More posts line as the post's own", async () => {
+    const page = [
+      "![Image 5](https://scontent-sea5-1.cdninstagram.com/v/own.jpg)",
+      "More posts from someone",
+      "![Image 9](https://scontent-sea5-1.cdninstagram.com/v/other.jpg)"
+    ].join("\n");
+    const candidates = await new PublicReaderResolver(async () => page).resolve(normalizeInstagramUrl("https://www.instagram.com/p/ABCDE/"));
+    expect(candidates.map((candidate) => [candidate.mediaKind, candidate.basis])).toEqual([
+      ["post_image", "photo_without_date"],
+      ["related_post_thumbnail", "listed_under_more_posts"]
+    ]);
+  });
+
+  it("makes no such claim on a page with no line to go by", async () => {
+    const page = "![Image 5](https://scontent-sea5-1.cdninstagram.com/v/own.jpg)";
+    const candidates = await new PublicReaderResolver(async () => page).resolve(normalizeInstagramUrl("https://www.instagram.com/p/ABCDE/"));
+    expect(candidates[0]?.basis).toBe("no_signal");
+  });
+
   it("sorts a live-shaped post page: the post, then neighbours under the boundary", async () => {
     const fixture = await readFile(resolve("tests/fixtures/instagram-reader-live-post.md"), "utf8");
     const resolver = new PublicReaderResolver(async () => fixture);

@@ -25,7 +25,8 @@ function classifyKind(raw: RawMediaCandidate): MediaKind {
   if (alt.includes("photo by")) return "carousel_item";
   if (alt.includes("more posts") || alt.includes("related")) return "related_post_thumbnail";
   if (alt.includes("video")) return "post_video";
-  return "unknown";
+  // Live pages often leave a post's own images unlabelled. Where they sit still says whose they are.
+  return raw.aboveBoundary === true ? "post_image" : "unknown";
 }
 
 function confidenceFor(kind: MediaKind, raw: RawMediaCandidate, firstPostDate?: string): "high" | "medium" | "low" {

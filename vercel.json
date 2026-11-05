@@ -8,7 +8,7 @@
   "trailingSlash": false,
   "functions": {
     "api/status.ts": { "maxDuration": 5 },
-    "api/resolve.ts": { "maxDuration": 25 },
+    "api/resolve.ts": { "maxDuration": 45 },
     "api/media/[ref].ts": { "maxDuration": 15 }
   },
   "headers": [

@@ -45,6 +45,17 @@ Vercel's docs (checked 2026-11-05) list this on all plans with no paid add-on. I
    - **Deployment Protection (chosen for v1).** Only people you admit can reach the site, landing included. No limits to tune and no new cost.
    - **A Firewall rate limit.** Add a rule for paths starting with `/api/`, keyed on IP, fixed window. One sheet makes up to 25 requests at once, so 120 per 60 seconds is the practical floor. That still allows 120 × 4 MB = 480 MB a minute per IP, and 120 resolves a minute from one IP could use up the anonymous reader quota everyone shares. Vercel's docs (checked 2026-11-05) list rate limiting on all plans, but Hobby allows **one rule per project**, so `/api/resolve` can't have a tighter limit than `/api/media` without Pro. Hobby includes 1,000,000 allowed requests; usage beyond that is billed, which is an approval decision. Counters are per region.
 2. **Run a live check** with a post you're authorized to use (below). Automated tests use fixtures.
+3. **Read the terms note below** before opening the site to anyone else.
+
+## Terms
+
+Read on 2026-11-05. This is a working reading, not legal advice.
+
+- [Instagram's Terms of Use](https://help.instagram.com/581066165581870/) bar accessing or collecting information in an automated way without express permission, logged in or not. **The hosted tool is covered by this**, because it reads Instagram through an automated reader. Keeping it private, human-paced and link by link keeps the exposure small. It doesn't remove it.
+- [Meta's Developer Policies](https://developers.facebook.com/devpolicy/), section 6, bar using the Instagram Platform simply to display content, or to import or back it up, without prior permission. That is why the official API isn't used here, even though it could read a whole professional account. [Meta's permissions list](https://developers.facebook.com/docs/permissions/) gives metadata and insights as the allowed uses of the permission Business Discovery relies on. Meta's stated enforcement includes removing the app and the developer account.
+- A browser extension doing the reading hits the first rule too.
+
+So the tool reaches an account's older posts through its operator: they browse Instagram as themselves and paste the posts they want. Don't add anything that walks an account on its own.
 
 ## Live check
 
@@ -59,9 +70,11 @@ After deploying, with a post you may use:
 
 ## Known limits
 
-- **Profiles are a small window.** Instagram redirects logged-out readers from a profile page to a login, so a profile is read from its public embed page. That shows a few recent posts, and an account can turn it off. There is no route to a whole profile without logging in, and this project doesn't work around that.
-- **Upstream dependency.** Resolution rests on Jina Reader's view of Instagram, which can change or be blocked. Serverless egress IPs are shared, so anonymous rate limits may be reached sooner than on a home connection. The tool reports this rather than failing silently.
+- **Profiles are a small window.** Instagram redirects logged-out readers from a profile page to a login, so a profile is read from its public embed page. That shows a few recent posts (six, on the accounts measured), and an account can turn it off. A post page's "More posts" reaches a few more, but every post on an account returned the same newest list, so it can't go further back. An older post is reachable only by pasting its own link.
+- **Carousels can come back short.** A logged-out page may show only a carousel's first slides.
+- **Upstream dependency.** Resolution rests on Jina Reader's view of Instagram, which can change or be blocked. The reader can also keep a render taken before a post's photos loaded, so a post page that comes back with no images is read once more with its cache skipped. That second read is why the resolve function's limit is 45 seconds. Serverless egress IPs are shared, so anonymous rate limits may be reached sooner than on a home connection. The tool reports this rather than failing silently.
 - **4 MB per image.** Vercel limits a function response to 4.5 MB, and each image is validated whole before delivery. Larger images get a clear error.
 - **Blocked downloads are invisible.** Browsers don't report a refused download to the page, so "Download started" means the bytes arrived and the download was requested, not that the file landed. Safari and iOS policies haven't been tested on real devices.
 - **Signature checks, not decoding.** Image validation reads file signatures. It doesn't prove a file decodes.
-- **Reference lifetime.** A reference lasts 15 minutes. The session cookie lasts an hour, is `HttpOnly`, and carries no identity.
+- **Reference lifetime.** A reference lasts an hour, because a sheet is built by hand while browsing. It expires link by link, and reading a link again carries its marks over. The session cookie lasts two hours, is `HttpOnly`, and carries no identity.
+- **Duplicates are matched by file.** Two links showing the same image file are recognized as one frame. The same photograph saved as two different files isn't.

@@ -1,20 +1,21 @@
 # Insta Luck
 
-Turn a public Instagram post or profile link into an inspectable image selection and an explicit download.
+Turn the public Instagram links you find into one inspectable sheet and an explicit download.
 
-Everything found is laid out as numbered, uncropped frames, each saying why it sits where it does. Nothing is chosen until you mark it.
+You do the browsing. Paste a post, Reel or profile, or a list of them, and each link lands on one sheet as numbered, uncropped frames, each saying why it sits where it does. An image two links share appears once. Nothing is chosen until you mark it.
 
 | Route | What it is |
 | --- | --- |
 | `/` | The landing page: what the tool does, a labeled sample sheet, and its limits |
-| `/app` | The collector: paste a link, review the frames, download what you marked |
+| `/app` | The sheet: paste links, review the frames, download what you marked |
 | `tools/photography-collector` | The local CLI and web tool, which keep a verified archive on your disk |
 
 ## What it can and can't do
 
 - Public pages only. It never asks for an Instagram login, and when Instagram demands one it says so.
 - Any post, Reel or profile link works as input, including `/<user>/p/…`, `m.instagram.com` and `instagr.am` forms. Stories don't, because they need a login.
-- A profile link is read from Instagram's public embed page, so it returns a few recent posts, not the whole account.
+- A profile link is read from Instagram's public embed page, so it returns a few recent posts, not the whole account. Any older post is reachable by pasting its own link.
+- A sheet holds 20 links, read one at a time. There is no download-all and no walking through an account, on purpose: see the terms note in [docs/DEPLOY.md](docs/DEPLOY.md).
 - Results can be incomplete, so no set is ever called complete.
 - The sort is an estimate. Likely post images come first, each frame shows what its place rests on, and profile pictures are left out of post and Reel sheets.
 - Images only. A Reel link may return a still, not the video.

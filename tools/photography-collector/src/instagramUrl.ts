@@ -92,12 +92,12 @@ export function normalizeInstagramUrl(inputUrl: string): NormalizedInstagramUrl 
   const [first, second, third] = parsed.pathname.split("/").filter(Boolean);
 
   // /reels/ alone is Instagram's own feed, not a Reel.
-  if (first !== undefined && first in POST_ROUTES && (first !== "reels" || second !== undefined)) {
+  if (first !== undefined && Object.hasOwn(POST_ROUTES, first) && (first !== "reels" || second !== undefined)) {
     return postUrl(inputUrl, first, second);
   }
 
   // Shared links often carry the account: /<user>/p/<code>/ or /<user>/reel/<code>/.
-  if (second !== undefined && second in POST_ROUTES && third !== undefined) {
+  if (second !== undefined && Object.hasOwn(POST_ROUTES, second) && third !== undefined) {
     return postUrl(inputUrl, second, third);
   }
 

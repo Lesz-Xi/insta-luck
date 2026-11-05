@@ -25,13 +25,21 @@ const STANDARD = [
   photo("frame-08", "May 13, 2024")
 ].join("\n");
 
+/** The reader kept a render from before the photos loaded. */
+const THIN = [image("frame-06", "Image 1: samplecreator's profile picture"), "A caption, and nothing else."].join("\n");
+
 const PAGES: Readonly<Record<string, string>> = {
+  // The shape of a live post page: its own images unlabelled, above the boundary.
+  FIXTHIN1: [PROFILE, image("frame-01", "Image 5"), image("frame-02", "Image 6"), BOUNDARY, photo("frame-07")].join("\n"),
   FIXOK01: STANDARD,
-  FIXSLOW1: [photo("frame-03"), photo("frame-04"), photo("frame-05")].join("\n"),
+  // Shares images with FIXOK01: its own post is FIXOK01's nearby frame 07, and its nearby frames repeat FIXOK01's.
+  FIXSHARE: [photo("frame-07"), BOUNDARY, photo("frame-08"), photo("frame-01")].join("\n"),
+  FIXSLOW1: [photo("slow-frame-03"), photo("slow-frame-04"), photo("slow-frame-05")].join("\n"),
   FIXEMPTY: "Title: Log in to Instagram\n\nNothing here.",
   FIXNEARBY: [image("frame-07", "A logo"), image("frame-08", "Another image")].join("\n"),
   FIXONCE1: [photo("frame-01"), photo("frame-02-once")].join("\n"),
   FIXPART1: [photo("frame-01"), photo("frame-02"), photo("frame-03-second")].join("\n"),
+  FIXGONE1: [photo("frame-01"), photo("frame-02-gone")].join("\n"),
   FIXHTML1: [image("frame-01", `Image 2: Photo by <img src=x onerror="window.__xss=1"> on June 24, 2024.`)].join("\n"),
   FIXLIVE1: [
     PROFILE,
@@ -86,7 +94,7 @@ export function createFixtureApi(): FixtureApi {
       if (input.shortcode === "FIXDOWN1") throw new CollectorError("reader_fetch_failed", "down", 500);
       if (input.shortcode === "FIXLIMIT") throw new CollectorError("reader_fetch_failed", "limited", 429);
       const page = PAGES[input.shortcode] ?? STANDARD;
-      return new PublicReaderResolver(async () => page).resolve(input);
+      return new PublicReaderResolver(async (_url, options) => (input.shortcode === "FIXTHIN1" && options?.fresh !== true ? THIN : page)).resolve(input);
     },
     fetchImage: async (remoteUrl) => {
       const { pathname } = new URL(remoteUrl);
@@ -95,6 +103,7 @@ export function createFixtureApi(): FixtureApi {
       if (FAILURE_RULES.some(([pattern, fails]) => pattern.test(pathname) && fails(call))) {
         throw new CollectorError("download_failed", "scripted failure", 500);
       }
+      if (/-gone\.jpg/.test(pathname) && call === 2) throw new CollectorError("download_failed", "scripted stale address", 404);
       const number = /frame-(\d\d)/.exec(pathname)?.[1] ?? "01";
       return new Uint8Array(readFileSync(resolve(SAMPLES, `frame-${number}-720.webp`)));
     }

@@ -1,364 +1,249 @@
 @import "./base.css";
 @import "./sheet.css";
 
-html {
-  /* Keeps a focused frame clear of the sticky tray. */
-  scroll-padding-bottom: 96px;
-}
-
+/*
+ * The Lab's workbench: a rail of fields beside one stage. The rail holds what you
+ * put in and what you take out; the stage holds the sheet. Nothing here casts a
+ * shadow, and only the stage moves.
+ */
 .bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  min-height: 64px;
-  padding-inline: var(--gutter);
-  border-bottom: 1px solid var(--rule);
-  font-size: 0.9375rem;
+  height: var(--bar);
+  padding: 0 16px;
+  background: var(--ground);
+  transition: background-color var(--in) var(--e-colour);
 }
 
-.bar .link {
-  display: inline-flex;
+.bar-end {
+  display: flex;
   align-items: center;
-  min-height: var(--target);
-}
-
-main {
-  width: var(--page);
-  margin-inline: auto;
-  padding: clamp(28px, 6vh, 64px) var(--gutter) 64px;
-}
-
-.intake {
-  display: grid;
-  gap: 16px;
-  max-width: 760px;
-}
-
-.intake h1 {
-  font: 340 clamp(2rem, 4.2vw, 3.25rem) / 1.04 var(--serif);
-  font-variation-settings: "opsz" 72;
-  letter-spacing: -0.022em;
-  text-wrap: balance;
-}
-
-form {
-  display: grid;
   gap: 8px;
 }
 
-label[for="post-link"] {
-  font-weight: 600;
-  font-size: 0.875rem;
+.bar-link {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--muted);
+  transition:
+    color var(--out) var(--e-colour),
+    background-color var(--out) var(--e-colour);
 }
 
-.field {
+@media (hover: hover) {
+  .bar-link:hover {
+    background: var(--hover);
+    color: var(--ink);
+  }
+}
+
+.bench {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: 300px minmax(0, 1fr);
+  align-items: start;
+}
+
+/* Panel tone, and one chamfered corner. */
+.rail {
+  position: sticky;
+  top: var(--bar);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  height: calc(100dvh - var(--bar));
+  padding: 16px;
+  background: var(--panel);
+  clip-path: polygon(0 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, 0 100%);
+  transition: background-color var(--in) var(--e-colour);
+}
+
+.key {
+  display: block;
+  font: 500 11px/1.4 var(--sans);
+  color: var(--muted);
+}
+
+/* A field is a key, a value and a rule. No box. */
+#find-form {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.field [hidden] {
-  display: none;
-}
-
-input[type="url"] {
-  min-width: 0;
-  min-height: var(--target);
-  padding: 0 14px;
-  border: 1px solid var(--ink);
+#post-link {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  max-height: 180px;
+  padding: 4px 0 8px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
   border-radius: 0;
   background: transparent;
-  font-size: 1rem;
+  color: var(--ink);
+  font: 400 14px/1.45 var(--sans);
+  resize: none;
+  field-sizing: content;
+  transition: border-color 0.3s var(--e-colour);
 }
 
-input[type="url"]::placeholder {
+#post-link::placeholder {
   color: var(--muted);
   opacity: 1;
 }
 
-input[type="url"][aria-invalid="true"] {
-  border-width: 2px;
-  padding-inline: 13px;
+#post-link:focus {
+  border-bottom-color: var(--ink);
 }
 
-input[type="url"]:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
+#post-link[aria-invalid="true"] {
+  border-bottom-color: var(--alert);
 }
 
 .hint {
-  max-width: 62ch;
+  font-size: 12px;
+  line-height: 1.4;
   color: var(--muted);
-  font-size: 0.875rem;
-  text-wrap: pretty;
 }
 
-/* Errors speak in ink and words. Red belongs to the mark. */
 .alert {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  font-weight: 500;
-  font-size: 0.9375rem;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--alert);
 }
 
-.alert[hidden] {
-  display: none;
-}
-
-.alert::before {
-  content: "!";
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
-  background: var(--ink);
-  color: var(--paper);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  line-height: 1;
+#find-button,
+#download-button {
+  width: 100%;
 }
 
 .notice {
-  display: grid;
-  gap: 12px;
-  padding: 16px 0;
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--rule);
-}
-
-.notice[hidden] {
-  display: none;
-}
-
-.notice p {
-  max-width: 62ch;
-  text-wrap: pretty;
-}
-
-.notice-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.notice .link {
+  align-self: flex-start;
+}
+
+/* The links, in the rail's own list. The square is the one place a link says it holds something chosen. */
+.links {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.link-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.link-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 32px;
   align-items: center;
+  column-gap: 8px;
+  min-height: 36px;
+  border-top: 1px solid var(--hair);
 }
 
-.notice-actions [hidden] {
-  display: none;
-}
-
-.status:empty,
-.elapsed[hidden] {
-  display: none;
-}
-
-/* Once there are frames, they are the page. The intake steps back to one row. */
-[data-phase="results"] .intake h1,
-[data-phase="results"] .hint,
-[data-phase="results"] .status {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-[data-phase="results"] main {
-  padding-top: clamp(16px, 3vh, 28px);
-}
-
-[data-phase="results"] .results {
-  margin-top: clamp(16px, 2.5vh, 24px);
-}
-
-.status {
-  font-size: 0.9375rem;
-}
-
-.elapsed {
-  color: var(--muted);
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.results {
-  display: grid;
-  gap: clamp(28px, 4vh, 44px);
-  margin-top: clamp(32px, 5vh, 56px);
-  padding-top: clamp(20px, 3vh, 28px);
-  border-top: 1px solid var(--ink);
-}
-
-.results[hidden] {
-  display: none;
-}
-
-.results-head {
+.link-name {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 24px;
-  align-items: baseline;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 36px;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background-color var(--out) var(--e-colour);
 }
 
-.results-head h2 {
-  flex-basis: 100%;
+.link-name::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background: var(--rule);
+  transition: background-color 0.3s var(--e-colour);
 }
 
-.results-head h2 {
-  font: 340 clamp(1.75rem, 3vw, 2.5rem) / 1.08 var(--serif);
-  font-variation-settings: "opsz" 60;
-  letter-spacing: -0.018em;
-  outline: none;
+.link-row[data-marked="true"] .link-name::before {
+  background: var(--pigment);
 }
 
-.results-note {
-  max-width: 68ch;
+.link-tally {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
-  font-size: 0.9375rem;
-  text-wrap: pretty;
 }
 
-.group {
-  display: grid;
-  gap: 14px;
+.link-row[data-status="failed"] .link-tally,
+.link-row[data-status="expired"] .link-tally {
+  color: var(--alert);
 }
 
-.group[hidden] {
-  display: none;
-}
-
-.group.is-nearby {
-  padding-top: 18px;
-  border-top: 1px solid var(--ink);
-}
-
-.boundary p {
-  max-width: 62ch;
-  color: var(--muted);
-  font-size: 0.875rem;
-}
-
-.sheet {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
-  gap: 26px clamp(14px, 1.8vw, 24px);
-}
-
-.sheet.is-nearby {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
-}
-
-.frame-caption {
-  grid-template-columns: auto minmax(0, 1fr) auto;
-}
-
-/* With no reason beside it, the number keeps the loupe at the far edge. */
-.frame-number:has(+ .frame-reason:empty) {
-  grid-column: 1 / span 2;
-}
-
-.frame-inspect {
-  grid-row: 1 / span 2;
-  grid-column: 3;
+.link-remove {
   display: grid;
   place-items: center;
-  width: var(--target);
-  height: var(--target);
-  margin: -8px -10px 0 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
+  width: 32px;
+  height: 36px;
+  color: var(--muted);
+  transition:
+    color var(--out) var(--e-colour),
+    background-color var(--out) var(--e-colour);
 }
 
-.frame-inspect svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 1.6;
+.link-remove .icon {
+  width: 12px;
+  height: 12px;
 }
 
 @media (hover: hover) {
-  .frame-inspect:hover {
-    background: var(--plate);
+  .link-remove:hover {
+    background: var(--hover);
+    color: var(--ink);
+  }
+
+  .link-name:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 }
 
-.frame-state {
-  grid-column: 1 / span 2;
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.frame-state:empty {
-  display: none;
-}
-
-.frame-state button {
-  min-height: var(--target);
-  padding: 0;
-  border: 0;
-  background: none;
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-  cursor: pointer;
-}
-
-.frame-missing {
-  display: grid;
-  place-content: center;
-  gap: 2px;
-  height: 100%;
-  padding: 12px;
-  color: var(--muted);
-  font-size: 0.8125rem;
-  text-align: center;
-}
-
-.frame-plate[data-preview="loading"] img {
-  opacity: 0;
-}
-
-.frame-plate[data-preview="ready"] img {
-  transition: opacity var(--hover) var(--ease);
-}
-
+/* What you take out, at the rail's foot. */
 .tray {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--ink);
-  background: var(--paper);
-}
-
-.tray-summary {
-  display: grid;
-  min-width: 0;
+  flex: none;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
 }
 
 .tray-count {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  font: 500 14px/1.3 var(--sans);
 }
 
 .tray-status {
+  min-height: 1.4em;
+  font-size: 12px;
+  line-height: 1.4;
   color: var(--muted);
-  font-size: 0.875rem;
-  text-wrap: pretty;
-}
-
-.tray-status:empty {
-  display: none;
 }
 
 .tray-actions {
@@ -367,20 +252,164 @@ input[type="url"]:focus-visible {
   gap: 8px;
 }
 
-.tray-actions [hidden] {
-  display: none;
+.tray-actions .is-quiet {
+  flex: 1 1 0;
 }
 
+/*
+ * The receipt: only after the bytes reached the browser, the label rises to say
+ * so and a pigment seal settles beside it. The button keeps its width, so
+ * nothing near it moves.
+ */
+.button-face,
+.button-receipt {
+  grid-area: 1 / 1;
+  transition: transform 0.42s var(--e-structure);
+}
+
+.button-receipt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(44px);
+}
+
+.button-receipt:empty {
+  visibility: hidden;
+}
+
+.button-receipt::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--pigment);
+}
+
+#download-button[data-receipt="on"] .button-face {
+  transform: translateY(-44px);
+}
+
+#download-button[data-receipt="on"] .button-receipt {
+  transform: none;
+}
+
+#download-button[data-receipt="on"] .button-receipt::before {
+  animation: seal 0.38s var(--e-out) 0.18s both;
+}
+
+@keyframes seal {
+  0% {
+    transform: scale(0.6);
+  }
+
+  70% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.stage {
+  min-width: 0;
+  padding: 10px 24px 72px;
+}
+
+.opening {
+  display: flex;
+  align-items: center;
+  min-height: calc(100dvh - var(--bar) - 120px);
+  max-width: 900px;
+}
+
+#results-title {
+  font: 400 26px/1.2 var(--sans);
+  letter-spacing: -0.02em;
+}
+
+#results-title:focus {
+  outline: none;
+}
+
+.roll {
+  margin-top: 28px;
+  scroll-margin-top: calc(var(--bar) + 12px);
+}
+
+.roll + .roll {
+  margin-top: 44px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.roll-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.roll-title {
+  font: 400 21px/1.25 var(--sans);
+  letter-spacing: -0.015em;
+}
+
+/* A source link is a reference, not an action, so its line stays quiet until it's wanted. */
+.roll-title .link {
+  background-image: linear-gradient(var(--rule), var(--rule));
+}
+
+.roll-note {
+  max-width: 70ch;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.roll-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: var(--panel);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.roll-notice p {
+  flex: 1 1 280px;
+  max-width: 70ch;
+}
+
+.group + .group {
+  margin-top: 24px;
+}
+
+/* The loupe is always night, so a photograph is judged against the same dark ground in either exposure. */
 .loupe {
-  width: 100vw;
+  --ground: #1a1a1a;
+  --panel: #222222;
+  --ink: #ffffff;
+  --muted: #8e8e8e;
+  --hair: rgba(255, 255, 255, 0.09);
+  --rule: rgba(255, 255, 255, 0.22);
+  --hover: rgba(255, 255, 255, 0.1);
+
+  position: fixed;
+  inset: 0;
+  width: 100%;
   max-width: none;
   height: 100dvh;
   max-height: none;
   margin: 0;
   padding: 0;
   border: 0;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--ground);
+  color: var(--ink);
 }
 
 .loupe[open] {
@@ -389,100 +418,188 @@ input[type="url"]:focus-visible {
 }
 
 .loupe::backdrop {
-  background: var(--ink);
+  background: #1a1a1a;
 }
 
-.loupe .button.is-quiet {
-  border-color: var(--paper);
-  color: var(--paper);
-}
-
-@media (hover: hover) {
-  .loupe .button.is-quiet:not([disabled]):hover {
-    background: var(--paper);
-    color: var(--ink);
-  }
-}
-
-.loupe .button[disabled] {
-  border-color: color-mix(in srgb, var(--paper) 30%, var(--ink));
-  color: color-mix(in srgb, var(--paper) 60%, var(--ink));
-}
-
-.loupe-bar,
-.loupe-foot {
+.loupe-bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px var(--gutter);
+  gap: 12px;
+  padding: 8px 16px;
 }
 
 .loupe-bar h2 {
-  font: italic 400 1.375rem/1.2 var(--serif);
-  font-variation-settings: "opsz" 28;
+  font: 400 21px/1.25 var(--sans);
+  letter-spacing: -0.015em;
+}
+
+.loupe-bar p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.loupe-bar form {
+  margin-left: auto;
 }
 
 .loupe-stage {
   min-height: 0;
-  padding: 0 var(--gutter);
+  padding: 0 16px;
 }
 
 .loupe-stage img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.loupe-foot p + p {
-  max-width: 68ch;
-  color: color-mix(in srgb, var(--paper) 72%, var(--ink));
-  font-size: 0.875rem;
+.loupe-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+}
+
+.loupe-words {
+  flex: 1 1 320px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+#loupe-alt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .loupe-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
 }
 
 .loupe-mark {
   display: inline-flex;
-  gap: 10px;
   align-items: center;
-  min-height: var(--target);
-  padding-inline: 12px;
-  border: 1px solid var(--paper);
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px;
+  font-size: 13px;
   cursor: pointer;
 }
 
 .loupe-mark input {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   margin: 0;
-  accent-color: var(--mark);
+  accent-color: var(--pigment);
 }
 
-@media (max-width: 560px) {
-  .field {
-    grid-template-columns: minmax(0, 1fr);
+/* Narrow: the rail stands above the stage, and the tray holds the viewport's foot. */
+@media (max-width: 899px) {
+  .bench {
+    display: block;
   }
 
-  .sheet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .rail {
+    position: static;
+    height: auto;
+    clip-path: none;
+    gap: 14px;
   }
 
-  .sheet.is-nearby {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .links {
+    flex: none;
+  }
+
+  .link-list {
+    max-height: 160px;
+  }
+
+  #post-link {
+    font-size: 16px;
+  }
+
+  .tray {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 15;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+    margin: 0;
+    padding: 8px 16px max(8px, env(safe-area-inset-bottom));
+    background: var(--panel);
+  }
+
+  .tray-summary {
+    flex: 1 1 120px;
+    min-width: 0;
+  }
+
+  .tray-status {
+    min-height: 0;
   }
 
   .tray-actions {
-    width: 100%;
+    flex-wrap: nowrap;
   }
 
-  .tray-actions .button:last-child {
-    flex: 1;
+  #download-button {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .stage {
+    padding: 14px 16px 150px;
+  }
+
+  .opening {
+    min-height: 34vh;
+  }
+
+  .sheet,
+  .sheet.is-nearby {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .sheet,
+  .sheet.is-nearby {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* A finger needs more room than a pointer. */
+@media (pointer: coarse) {
+  .link-row,
+  .link-name,
+  .link-remove {
+    min-height: 44px;
+  }
+
+  .link-remove {
+    width: 44px;
+    height: 44px;
+  }
+
+  .link-row {
+    grid-template-columns: minmax(0, 1fr) auto 44px;
+  }
+}
+
+@media (max-width: 420px) {
+  .bar-link {
+    display: none;
   }
 }

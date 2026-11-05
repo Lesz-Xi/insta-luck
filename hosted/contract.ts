@@ -6,7 +6,7 @@ export type { CandidateBasis };
 export type FrameGroup = "post" | "nearby";
 
 export interface ClientFrame {
-  /** Stable across resolves of the same post, so a selection can survive re-resolution. */
+  /** The same image has the same id on any link that shows it, so a mark survives a re-read and a repeat can be left out. */
   readonly id: string;
   /** Opaque, encrypted, expiring and bound to this browser's session. */
   readonly ref: string;

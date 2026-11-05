@@ -14,7 +14,8 @@ export interface FrameSheet {
 }
 
 function groupFor(candidate: MediaCandidate): FrameGroup {
-  return candidate.mediaKind === "carousel_item" || candidate.mediaKind === "post_image" ? "post" : "nearby";
+  // A video post's cover is its own image, even if the video itself can't come with it.
+  return ["carousel_item", "post_image", "post_video"].includes(candidate.mediaKind) ? "post" : "nearby";
 }
 
 function fetchableUrl(remoteUrl: string): URL | undefined {
@@ -66,8 +67,9 @@ export function layOutSheet(input: NormalizedInstagramUrl, candidates: readonly 
       omitted += 1;
       continue;
     }
-    // The query is signed and changes per fetch; the path identifies the file.
-    const id = createHash("sha256").update(`${input.shortcode}:${url.pathname}`).digest("hex").slice(0, 16);
+    // The query is signed and changes per fetch; the path identifies the file, on any page that shows it.
+    // That lets a sheet built from several links recognize the same image twice.
+    const id = createHash("sha256").update(url.pathname).digest("hex").slice(0, 16);
     if (seen.has(id)) continue;
     seen.add(id);
     usable.push({ candidate, id });

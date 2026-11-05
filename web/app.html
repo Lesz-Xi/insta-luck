@@ -3,106 +3,103 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Collector | Insta Luck</title>
-    <meta name="description" content="Paste a public Instagram post or profile link, review the images found, and download the ones you choose." />
-    <meta name="theme-color" content="#f3f2ee" />
+    <title>Sheet | Insta Luck</title>
+    <meta name="description" content="Paste public Instagram links, review their images on one sheet, and download the ones you choose." />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin />
+    <script src="/exposure.js"></script>
     <link rel="stylesheet" href="./src/styles/app.css" />
     <script type="module" src="./src/app/main.ts"></script>
   </head>
-  <body data-phase="idle">
+  <body data-state="empty">
     <a class="skip" href="#post-link">Skip to the link field</a>
+    <!-- Phosphor icons (MIT): bookmark-simple Light and Fill, magnifying-glass Light, x Light. -->
     <svg width="0" height="0" class="sr-only" aria-hidden="true" focusable="false">
-      <symbol id="mark-a" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M18 -7C130 -13 356 -3 509 -6 514 142 503 424 508 606 362 613 128 601 -7 606 -13 431 -3 151 -6 -9 44 -13 92 -7 152 -10" /></symbol>
-      <symbol id="mark-b" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M488 -8C350 -3 140 -12 -8 -5 -3 150 -12 430 -6 607 146 601 372 612 507 605 513 420 502 160 508 -7 462 -12 410 -6 356 -9" /></symbol>
-      <symbol id="mark-c" viewBox="0 0 500 600" overflow="visible"><path pathLength="1" d="M-7 22C-12 160 -3 420 -8 608 150 603 360 612 508 606 503 430 513 150 507 -8 360 -13 150 -3 -6 -6 -11 40 -5 82 -9 134" /></symbol>
-      <symbol id="tick" viewBox="0 0 14 14"><path d="M2 7.500 5.500 11 12 3.500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" /></symbol>
+      <symbol id="i-keep" viewBox="0 0 256 256"><path fill="currentColor" d="M184,34H72A14,14,0,0,0,58,48V224a6,6,0,0,0,9.18,5.09l60.81-38,60.83,38A6,6,0,0,0,198,224V48A14,14,0,0,0,184,34Zm2,179.17-54.83-34.26a6,6,0,0,0-6.36,0L70,213.17V48a2,2,0,0,1,2-2H184a2,2,0,0,1,2,2Z" /></symbol>
+      <symbol id="i-kept" viewBox="0 0 256 256"><path fill="currentColor" d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z" /></symbol>
+      <symbol id="i-inspect" viewBox="0 0 256 256"><path fill="currentColor" d="M228.24,219.76l-51.38-51.38a86.15,86.15,0,1,0-8.48,8.48l51.38,51.38a6,6,0,0,0,8.48-8.48ZM38,112a74,74,0,1,1,74,74A74.09,74.09,0,0,1,38,112Z" /></symbol>
+      <symbol id="i-remove" viewBox="0 0 256 256"><path fill="currentColor" d="M204.24,195.76a6,6,0,1,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z" /></symbol>
     </svg>
 
     <header class="bar">
-      <a class="wordmark" href="/">Insta Luck</a>
-      <a class="link" href="/#how">How it works</a>
+      <a class="word" href="/">Insta Luck</a>
+      <div class="bar-end">
+        <a class="bar-link" href="/#how">How it works</a>
+        <!-- The Lab's exposure switch: Phosphor Light "sun-horizon", in parts. The horizon never moves. -->
+        <button class="sun" type="button" data-exposure-switch aria-label="Switch to night" aria-pressed="false">
+          <svg width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round"><defs><clipPath id="sun-sky"><rect x="0" y="0" width="256" height="156" /></clipPath></defs><g clip-path="url(#sun-sky)"><g class="sun-disc"><circle cx="128" cy="144" r="64" /><g class="sun-rays"><path d="M80,40l8,16" /><path d="M24,96l16,8" /><path d="M232,96l-16,8" /><path d="M176,40l-8,16" /></g></g></g><path d="M16,160H240" /><path d="M48,200H208" /></svg>
+        </button>
+      </div>
     </header>
 
-    <main>
-      <section class="intake" aria-labelledby="page-title">
-        <h1 id="page-title">Find the images in a public post or profile</h1>
-
+    <div class="bench">
+      <aside class="rail" aria-label="Your links">
         <form id="find-form" novalidate>
-          <label for="post-link">Instagram link</label>
-          <div class="field">
-            <input
-              id="post-link"
-              name="url"
-              type="url"
-              inputmode="url"
-              autocomplete="off"
-              autocapitalize="off"
-              spellcheck="false"
-              placeholder="https://www.instagram.com/…"
-              aria-describedby="post-hint post-error"
-            />
-            <button class="button" id="find-button" type="submit">Find images</button>
-            <button class="button is-quiet" id="cancel-button" type="button" hidden>Cancel</button>
-          </div>
-          <p class="hint" id="post-hint">Public posts and profiles. A profile shows only a few recent posts, and results may be incomplete. A Reel link may return a still image, but video isn’t supported.</p>
+          <label class="key" for="post-link">Instagram link</label>
+          <textarea
+            id="post-link"
+            name="url"
+            rows="2"
+            inputmode="url"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="https://www.instagram.com/…"
+            aria-describedby="post-hint post-error"
+          ></textarea>
+          <p class="hint" id="post-hint">One link or several. Public posts, Reels and profiles. A profile shows only a few recent posts.</p>
           <p class="alert" id="post-error" role="alert" hidden></p>
+          <button class="button" id="find-button" type="submit">Add to sheet</button>
         </form>
 
         <div class="notice" id="notice" hidden>
           <p id="notice-text"></p>
-          <div class="notice-actions">
-            <button class="button is-quiet" id="notice-action" type="button" hidden></button>
-            <a class="link" id="notice-link" href="https://github.com/Lesz-Xi/insta-luck" hidden>Run it locally from the source</a>
-          </div>
+          <a class="link" id="notice-link" href="https://github.com/Lesz-Xi/insta-luck" hidden>Run it locally from the source</a>
         </div>
 
-        <p class="status" id="status" role="status" aria-live="polite"></p>
-        <p class="elapsed" id="elapsed" aria-hidden="true" hidden></p>
-      </section>
-
-      <section class="results" id="results" aria-labelledby="results-title" hidden>
-        <div class="results-head">
-          <h2 id="results-title" tabindex="-1"></h2>
-          <p id="results-source"></p>
-          <p class="results-note" id="results-note"></p>
+        <div class="links" id="links" hidden>
+          <h2 class="key">On this sheet</h2>
+          <ol class="link-list" id="link-list"></ol>
         </div>
 
-        <div class="group" id="group-post">
-          <div class="boundary"><h3 id="group-post-title">Likely from this post</h3></div>
-          <ul class="sheet" id="sheet-post"></ul>
-        </div>
-
-        <div class="group is-nearby" id="group-nearby">
-          <div class="boundary">
-            <h3>Found nearby</h3>
-            <p id="group-nearby-note">These were on the page but probably aren’t part of the post. Mark one only if you want it.</p>
-          </div>
-          <ul class="sheet is-nearby" id="sheet-nearby"></ul>
-        </div>
-
-        <div class="tray" id="tray">
+        <div class="tray" id="tray" hidden>
           <div class="tray-summary">
             <p class="tray-count" id="tray-count">0 selected</p>
             <p class="tray-status" id="tray-status" role="status" aria-live="polite"></p>
           </div>
           <div class="tray-actions">
-            <button class="button is-quiet" id="clear-button" type="button" hidden>Clear</button>
+            <button class="button" id="download-button" type="button" disabled><span class="button-face">Download selected</span><span class="button-receipt" id="download-receipt" aria-hidden="true"></span></button>
             <button class="button is-quiet" id="retry-button" type="button" hidden>Retry failed</button>
-            <button class="button" id="download-button" type="button" disabled>Download selected</button>
+            <button class="button is-quiet" id="clear-button" type="button" hidden>Clear</button>
           </div>
         </div>
-      </section>
-    </main>
+      </aside>
+
+      <main class="stage" id="stage">
+        <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+
+        <section class="opening" id="opening">
+          <h1 class="opening-line"><span class="ink">Your sheet is empty.</span> <span class="pale">Paste a post, Reel or profile link, and its images land here.</span></h1>
+        </section>
+
+        <section class="results" id="results" aria-labelledby="results-title" hidden>
+          <h1 id="results-title" tabindex="-1"></h1>
+          <div id="rolls"></div>
+        </section>
+      </main>
+    </div>
 
     <dialog class="loupe" id="loupe" aria-labelledby="loupe-title">
       <div class="loupe-bar">
         <h2 id="loupe-title"></h2>
+        <p id="loupe-source"></p>
         <form method="dialog"><button class="button is-quiet" type="submit">Close</button></form>
       </div>
       <div class="loupe-stage"><img id="loupe-image" alt="" /></div>
       <div class="loupe-foot">
-        <div>
+        <div class="loupe-words">
           <p id="loupe-reason"></p>
           <p id="loupe-alt"></p>
         </div>

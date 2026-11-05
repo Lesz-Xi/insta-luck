@@ -4,6 +4,15 @@ import { normalizeInstagramUrl } from "../src/instagramUrl.js";
 const knownUrl = "https://www.instagram.com/p/TEST_CODE_1/?utm_source=ig_web_copy_link&igsh=example";
 
 describe("normalizeInstagramUrl", () => {
+  it.each(["constructor", "valueOf", "toString"])("reads %s as the username it can be, not as a route", (name) => {
+    const expected = name.toLowerCase();
+    expect(normalizeInstagramUrl(`https://www.instagram.com/${name}/`)).toMatchObject({ routeType: "profile", shortcode: expected });
+  });
+
+  it("doesn't take an inherited name for a route in a longer path", () => {
+    expect(normalizeInstagramUrl("https://www.instagram.com/constructor/abcde/")).toMatchObject({ routeType: "profile", shortcode: "constructor" });
+  });
+
   it("normalizes a tracked Instagram post URL", () => {
     expect(normalizeInstagramUrl(knownUrl)).toEqual({
       inputUrl: knownUrl,

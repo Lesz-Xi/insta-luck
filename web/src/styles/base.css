@@ -1,3 +1,19 @@
+/*
+ * The XI Lab's language for one product. The values are the Lab's house kit
+ * (house/house.css): two exposures, tone and hairlines, one pigment. The landing
+ * takes its structure from Odysxi · Folio and the sheet from the Lab's Place
+ * sheet, so both routes read as one thing.
+ *
+ * In this product the pigment means one thing only: chosen.
+ */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
 @font-face {
   font-family: "Newsreader";
   src: url("/fonts/newsreader-roman.woff2") format("woff2");
@@ -6,59 +22,71 @@
   font-display: swap;
 }
 
+/* Metric-matched fallback, so the swap to the web font doesn't move the page. */
 @font-face {
-  font-family: "Newsreader";
-  src: url("/fonts/newsreader-italic.woff2") format("woff2");
-  font-style: italic;
-  font-weight: 300 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Libre Franklin";
-  src: url("/fonts/libre-franklin.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-}
-
-/* Metric-matched fallbacks, so the swap to the web fonts doesn't move the page. */
-@font-face {
-  font-family: "Newsreader Fallback";
-  src: local("Times New Roman"), local("Times");
-  size-adjust: 97%;
-  ascent-override: 92%;
-  descent-override: 26%;
-}
-
-@font-face {
-  font-family: "Libre Franklin Fallback";
+  font-family: "Instrument Sans Fallback";
   src: local("Arial"), local("Helvetica");
-  size-adjust: 102%;
+  size-adjust: 96%;
 }
 
 :root {
   color-scheme: light;
 
-  --paper: #f3f2ee;
-  --ink: #161514;
-  --muted: #66625b;
-  --mark: #d0341a;
+  --ground: #ffffff;
+  --panel: #f6f6f6;
+  --ink: #111111;
+  --muted: #6b6b6b;
+  /* Folio's pale second tone, deepened until large text clears 3:1. */
+  --pale: #8c8c8c;
+  --hair: #ececec;
+  --rule: rgba(17, 17, 17, 0.2);
+  --hover: rgba(17, 17, 17, 0.05);
+  --chip: rgba(255, 255, 255, 0.85);
+  --alert: #b54536;
+  --pigment: #e6963e;
 
-  --plate: color-mix(in srgb, var(--ink) 7%, var(--paper));
-  --rule: color-mix(in srgb, var(--ink) 18%, var(--paper));
+  --sans: "Instrument Sans", "Instrument Sans Fallback", ui-sans-serif, -apple-system, "Helvetica Neue", sans-serif;
+  --serif: "Newsreader", Georgia, serif;
 
-  --serif: "Newsreader", "Newsreader Fallback", "Iowan Old Style", Georgia, serif;
-  --sans: "Libre Franklin", "Libre Franklin Fallback", ui-sans-serif, system-ui, sans-serif;
+  --e-structure: cubic-bezier(0.7, 0, 0.16, 1);
+  --e-colour: cubic-bezier(0, 0, 0.13, 0.99);
+  --e-out: cubic-bezier(0.19, 1, 0.22, 1);
+  --e-page: cubic-bezier(0.62, 0, 0.14, 1);
+  --in: 0.45s;
+  --out: 0.25s;
 
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --hover: 0.24s;
-  --mark-in: 0.42s;
-  --mark-out: 0.2s;
+  --chamfer: 18px;
+  --bar: 58px;
+}
 
-  --gutter: clamp(16px, 3vw, 40px);
-  --page: min(100%, 1520px);
-  --target: 44px;
+:root[data-exposure="night"] {
+  color-scheme: dark;
+  --ground: #1a1a1a;
+  --panel: #222222;
+  --ink: #ffffff;
+  --muted: #8e8e8e;
+  --pale: #767676;
+  --hair: rgba(255, 255, 255, 0.09);
+  --rule: rgba(255, 255, 255, 0.22);
+  --hover: rgba(255, 255, 255, 0.1);
+  --chip: rgba(26, 26, 26, 0.8);
+  --alert: #e58a78;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-exposure="snow"]) {
+    color-scheme: dark;
+    --ground: #1a1a1a;
+    --panel: #222222;
+    --ink: #ffffff;
+    --muted: #8e8e8e;
+    --pale: #767676;
+    --hair: rgba(255, 255, 255, 0.09);
+    --rule: rgba(255, 255, 255, 0.22);
+    --hover: rgba(255, 255, 255, 0.1);
+    --chip: rgba(26, 26, 26, 0.8);
+    --alert: #e58a78;
+  }
 }
 
 *,
@@ -70,15 +98,18 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  background: var(--ground);
 }
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--ground);
   color: var(--ink);
-  font: 400 1rem/1.5 var(--sans);
+  font: 400 15px/1.45 var(--sans);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color var(--in) var(--e-colour),
+    color var(--in) var(--e-colour);
 }
 
 h1,
@@ -88,37 +119,52 @@ p,
 ol,
 ul,
 dl,
-dd,
-figure {
+dd {
   margin: 0;
-  padding: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 400;
 }
 
 ol,
 ul {
+  padding: 0;
   list-style: none;
 }
 
-img,
-svg {
-  display: block;
-  max-width: 100%;
-}
-
-button,
-input {
-  font: inherit;
+a {
   color: inherit;
+  text-decoration: none;
 }
 
 button {
-  appearance: none;
-  border-radius: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--pigment) 45%, transparent);
+  color: inherit;
 }
 
 :focus-visible {
-  outline: 2px solid currentcolor;
-  outline-offset: 3px;
+  outline: 1px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .sr-only {
@@ -128,101 +174,170 @@ button {
   margin: -1px;
   padding: 0;
   overflow: hidden;
-  clip-path: inset(50%);
+  clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
 }
 
 .skip {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 10;
+  top: -100px;
+  left: 16px;
+  z-index: 50;
   padding: 10px 14px;
   background: var(--ink);
-  color: var(--paper);
-  transform: translateY(-200%);
+  color: var(--ground);
 }
 
 .skip:focus {
-  transform: none;
+  top: 8px;
 }
 
-.wordmark {
-  color: inherit;
-  font: italic 400 1.5rem/1 var(--serif);
-  font-variation-settings: "opsz" 36;
-  letter-spacing: -0.015em;
-  text-decoration: none;
+/* The studio's way of setting a name: medium weight, tracked in. */
+.word {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font: 500 19px/1 var(--sans);
+  letter-spacing: -0.03em;
 }
 
-/* Links underline; that is their whole grammar. */
+.ink {
+  color: var(--ink);
+}
+
+.pale {
+  color: var(--pale);
+}
+
+/* A line that draws under a link on hover. */
 .link {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.22em;
-  transition: text-decoration-color var(--hover) var(--ease);
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 100% 1px;
+  padding-bottom: 1px;
+  transition: background-size 0.5s var(--e-out);
 }
 
 @media (hover: hover) {
   .link:hover {
-    text-decoration-color: transparent;
+    background-size: 0 1px;
+    background-position: 100% 100%;
   }
 }
 
-/* Buttons invert ink and paper; that is theirs. */
+/*
+ * Primaries are flat and square: ink, then a hairline secondary. Hover is a
+ * colour change, never a sliding fill.
+ */
 .button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--target);
-  padding: 0 22px;
-  border: 1px solid var(--ink);
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  overflow: hidden;
   background: var(--ink);
-  color: var(--paper);
-  font: 500 0.9375rem/1 var(--sans);
-  letter-spacing: 0.005em;
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
+  color: var(--ground);
+  font: 500 13px/1.2 var(--sans);
+  text-align: center;
   transition:
-    background-color var(--hover) var(--ease),
-    color var(--hover) var(--ease);
+    background-color 0.3s var(--e-colour),
+    color 0.3s var(--e-colour),
+    box-shadow 0.3s var(--e-colour);
+}
+
+.button:disabled {
+  background: transparent;
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  cursor: default;
 }
 
 .button.is-quiet {
   background: transparent;
   color: var(--ink);
-}
-
-.button[disabled] {
-  border-color: var(--rule);
-  background: transparent;
-  color: var(--muted);
-  cursor: not-allowed;
+  box-shadow: inset 0 0 0 1px var(--rule);
 }
 
 @media (hover: hover) {
-  .button:not([disabled]):hover {
-    background: transparent;
-    color: var(--ink);
+  .button:not(:disabled):hover {
+    background: color-mix(in srgb, var(--ink) 82%, var(--ground));
   }
 
-  .button.is-quiet:not([disabled]):hover {
-    background: var(--ink);
-    color: var(--paper);
+  .button.is-quiet:not(:disabled):hover {
+    background: var(--hover);
+    box-shadow: inset 0 0 0 1px var(--ink);
   }
 }
 
+/* The Lab's exposure switch: the sun sets behind a horizon that never moves. */
+.sun {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  transition: background-color var(--out) var(--e-colour);
+}
+
+@media (hover: hover) {
+  .sun:hover {
+    background: var(--hover);
+  }
+}
+
+.sun svg {
+  display: block;
+  overflow: visible;
+}
+
+.sun-disc {
+  transition: transform 0.62s cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.sun-rays path {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 0.28s 0.3s var(--e-colour),
+    transform 0.4s 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-exposure="night"] .sun-disc {
+  transform: translateY(54px);
+  transition: transform 0.62s cubic-bezier(0.55, 0, 0.35, 1);
+}
+
+:root[data-exposure="night"] .sun-rays path {
+  opacity: 0;
+  transform: scale(0.3);
+  transition:
+    opacity 0.2s var(--e-colour),
+    transform 0.24s var(--e-colour);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-exposure="snow"]) .sun-disc {
+    transform: translateY(54px);
+    transition: transform 0.62s cubic-bezier(0.55, 0, 0.35, 1);
+  }
+
+  :root:not([data-exposure="snow"]) .sun-rays path {
+    opacity: 0;
+    transform: scale(0.3);
+    transition:
+      opacity 0.2s var(--e-colour),
+      transform 0.24s var(--e-colour);
+  }
+}
+
+/* The same end states, at once. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
     transition-delay: 0s !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

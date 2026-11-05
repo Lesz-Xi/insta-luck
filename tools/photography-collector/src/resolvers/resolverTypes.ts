@@ -11,4 +11,6 @@ export interface RawMediaCandidate {
   readonly altText?: string;
   readonly contextText?: string;
   readonly ordinal: number;
+  /** The page has a "More posts" line and this image sits above it, which is stronger evidence than any label. */
+  readonly aboveBoundary?: boolean;
 }

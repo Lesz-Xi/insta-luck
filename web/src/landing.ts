@@ -1,40 +1,73 @@
-const sheet = document.querySelector<HTMLElement>("[data-sheet]");
-const tally = document.querySelector<HTMLOutputElement>("[data-tally]");
+import { wireExposure } from "./exposure.js";
 
-if (sheet !== null && tally !== null) {
+interface LenisOptions {
+  readonly duration: number;
+  readonly smoothWheel: boolean;
+  readonly autoRaf: boolean;
+  readonly autoToggle: boolean;
+  readonly anchors: boolean;
+}
+
+declare global {
+  interface Window {
+    Lenis?: new (options: LenisOptions) => unknown;
+  }
+}
+
+const root = document.documentElement;
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+wireExposure();
+countMarks();
+watchArrivals();
+settleScroll();
+
+// Two frames, so the first paint holds the hidden state and the entrance really runs.
+window.requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
+    root.classList.add("is-ready");
+  });
+});
+
+function countMarks(): void {
+  const sheet = document.querySelector<HTMLElement>("[data-sheet]");
+  const tally = document.querySelector<HTMLOutputElement>("[data-tally]");
+  if (sheet === null || tally === null) return;
+
   const boxes = [...sheet.querySelectorAll<HTMLInputElement>(".frame-check")];
-
   sheet.addEventListener("change", () => {
     const marked = boxes.filter((box) => box.checked).length;
     tally.textContent = marked === 1 ? "1 frame marked" : `${marked} frames marked`;
   });
-
-  drawMarksOnce(sheet);
 }
 
 /**
- * The page rests with its marks already drawn, so this only subtracts them
- * until the sheet is in view. Without JavaScript or with reduced motion, the
- * finished sheet is simply what's there.
+ * Rows arrive as a folio page turns. The page rests complete; this only holds
+ * things back until they're in view, so without it nothing is missing.
  */
-function drawMarksOnce(target: HTMLElement): void {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  if (!("IntersectionObserver" in window)) return;
+function watchArrivals(): void {
+  const arrivals = [...document.querySelectorAll<HTMLElement>(".arrive")];
+  if (reduced.matches || !("IntersectionObserver" in window)) {
+    for (const element of arrivals) element.classList.add("is-in");
+    return;
+  }
 
-  const strip = target.querySelector(".strip");
-  if (strip === null) return;
-
-  target.classList.add("is-undrawn");
   const observer = new IntersectionObserver(
     (entries) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
-      observer.disconnect();
-      window.setTimeout(() => {
-        target.classList.remove("is-undrawn");
-      }, 240);
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("is-in");
+        observer.unobserve(entry.target);
+      }
     },
-    // A line across the viewport rather than a share of the strip, which can be taller than a phone screen.
-    { rootMargin: "0px 0px -15% 0px" }
+    // A line across the viewport rather than a share of the row, which can be taller than a phone screen.
+    { rootMargin: "0px 0px -14% 0px" }
   );
-  observer.observe(strip);
+  for (const element of arrivals) observer.observe(element);
+}
+
+/** Feather, the Odysxi templates' weight. Wheel and trackpad only; if the library is missing, the page scrolls natively. */
+function settleScroll(): void {
+  if (reduced.matches || window.Lenis === undefined) return;
+  new window.Lenis({ duration: 0.8, smoothWheel: true, autoRaf: true, autoToggle: true, anchors: true });
 }
