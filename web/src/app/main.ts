@@ -3,6 +3,7 @@ import { normalizeInstagramUrl } from "../../../tools/photography-collector/src/
 import type { ClientFrame } from "../../../hosted/contract.js";
 import { fetchFile, fetchOpen, handOff, previewUrl, ProblemError, resolvePost } from "./api.js";
 import {
+  captionFor,
   frameLabel,
   LINK_ERRORS,
   nearbyNote,
@@ -173,7 +174,7 @@ function buildFrame(frame: ClientFrame): HTMLLIElement {
 
   const reasonText = document.createElement("span");
   reasonText.className = "frame-reason";
-  reasonText.textContent = reason;
+  reasonText.textContent = captionFor(frame) ?? "";
 
   const inspect = document.createElement("button");
   inspect.className = "frame-inspect";

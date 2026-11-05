@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { ClientFrame, ResolveResponse } from "../../hosted/contract.js";
-import { nearbyNote, noticeFor, primaryGroupTitle, reasonFor, resultsNote, resultsTitle, statusLine, trayStatus } from "../src/app/copy.js";
+import {
+  captionFor,
+  nearbyNote,
+  noticeFor,
+  primaryGroupTitle,
+  reasonFor,
+  resultsNote,
+  resultsTitle,
+  statusLine,
+  trayStatus
+} from "../src/app/copy.js";
 import {
   failedIds,
   initialState,
@@ -152,6 +162,13 @@ describe("honest result copy", () => {
     );
     expect(primaryGroupTitle(state)).toBe("Recent posts on this profile");
     expect(nearbyNote(state)).toBe("The account’s profile picture.");
+  });
+
+  it("keeps a profile frame's caption quiet, because the heading already says it", () => {
+    const onProfile = frame(1, { basis: "shown_on_profile" });
+    expect(captionFor(onProfile)).toBeUndefined();
+    expect(reasonFor(onProfile)).toBe("Recent post on this profile");
+    expect(captionFor(frame(2, { basis: "same_date_as_first", anchorNumber: 1 }))).toBe("Same date as frame 01");
   });
 
   it("explains a profile that returned only its picture", () => {

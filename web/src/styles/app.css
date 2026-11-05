@@ -256,6 +256,11 @@ input[type="url"]:focus-visible {
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
+/* With no reason beside it, the number keeps the loupe at the far edge. */
+.frame-number:has(+ .frame-reason:empty) {
+  grid-column: 1 / span 2;
+}
+
 .frame-inspect {
   grid-row: 1 / span 2;
   grid-column: 3;
@@ -331,8 +336,7 @@ input[type="url"]:focus-visible {
   gap: 8px 20px;
   align-items: center;
   justify-content: space-between;
-  margin-inline: calc(-1 * var(--gutter));
-  padding: 10px var(--gutter) max(10px, env(safe-area-inset-bottom));
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--ink);
   background: var(--paper);
 }

@@ -31,6 +31,11 @@ export function reasonFor(frame: ClientFrame): string {
   }
 }
 
+/** The group heading already says this for every frame on a profile, so the caption stays quiet. */
+export function captionFor(frame: ClientFrame): string | undefined {
+  return frame.basis === "shown_on_profile" ? undefined : reasonFor(frame);
+}
+
 export const LINK_ERRORS: Readonly<Record<string, string>> = {
   empty: "Paste an Instagram link first.",
   invalid_url: "That doesn’t look like a link. Paste the full address of a post.",

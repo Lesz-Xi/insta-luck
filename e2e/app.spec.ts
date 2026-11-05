@@ -154,7 +154,8 @@ test.describe("profile links", () => {
       await expect(page.locator("#results-note")).toContainText("3 recent posts from this profile.");
       await expect(page.locator("#results-note")).toContainText("isn’t the whole account");
       await expect(page.locator("#group-post-title")).toHaveText("Recent posts on this profile");
-      await expect(page.locator("#sheet-post .frame-reason").first()).toHaveText("Recent post on this profile");
+      await expect(page.locator("#sheet-post .frame-reason:not(:empty)")).toHaveCount(0);
+      await expect(markFrame(page, "01")).toHaveAccessibleName(/Recent post on this profile/);
       await expect(page.locator("#sheet-nearby .frame-reason").first()).toHaveText("Profile picture");
       await expect(page.locator(".frame-check:checked")).toHaveCount(0);
     });
@@ -514,6 +515,17 @@ test.describe("recovery", () => {
     expect((await pending).suggestedFilename()).toBe("insta-luck-FIXOK01-01.webp");
     await second.close();
   });
+});
+
+test("the tray's rule lines up with the page's other rules on a very wide screen", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Wide screens only.");
+  await page.setViewportSize({ width: 2200, height: 1000 });
+  await page.goto("/app");
+  await showResults(page);
+  const tray = await page.locator("#tray").boundingBox();
+  const results = await page.locator("#results").boundingBox();
+  expect(tray?.x).toBe(results?.x);
+  expect(tray?.width).toBe(results?.width);
 });
 
 test.describe("touch and targets", () => {
