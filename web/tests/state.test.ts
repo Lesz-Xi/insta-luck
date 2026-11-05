@@ -3,7 +3,6 @@ import type { ClientFrame, ResolveResponse } from "../../hosted/contract.js";
 import {
   captionFor,
   linkTally,
-  nearbyNote,
   noticeFor,
   primaryGroupTitle,
   reasonFor,
@@ -281,7 +280,7 @@ describe("honest result copy", () => {
   });
 
   it("counts a single link plainly and keeps the two groups distinct", () => {
-    const state = play(...read(A, reading([frame("1"), frame("2"), frame("3", 3, { group: "nearby", basis: "profile_picture" })])));
+    const state = play(...read(A, reading([frame("1"), frame("2"), nearby("3", 3)])));
     expect(sheetTitle(state)).toBe("3 frames found");
     expect(rollNote(firstRoll(state))).toBe("2 likely from this post, 1 found nearby. This set may be incomplete.");
   });
@@ -299,20 +298,15 @@ describe("honest result copy", () => {
 
   it("never calls a profile sheet the whole account, and says how to reach further", () => {
     const profile = reading(
-      [
-        frame("1", 1, { basis: "shown_on_profile" }),
-        frame("2", 2, { basis: "shown_on_profile" }),
-        frame("3", 3, { group: "nearby", basis: "profile_picture" })
-      ],
+      [frame("1", 1, { basis: "shown_on_profile" }), frame("2", 2, { basis: "shown_on_profile" })],
       { source: { canonicalUrl: "x", shortcode: "nasa", routeType: "profile" } }
     );
     const state = play(...read(A, profile));
-    expect(sheetTitle(state)).toBe("3 frames found");
+    expect(sheetTitle(state)).toBe("2 frames found");
     expect(rollNote(firstRoll(state))).toBe(
       "2 recent posts from this profile. Instagram shows only a few publicly, so this isn’t the whole account. To reach an older post, paste its link."
     );
     expect(primaryGroupTitle(firstLink(state))).toBe("Recent posts on this profile");
-    expect(nearbyNote(firstLink(state))).toBe("The account’s profile picture.");
   });
 
   it("keeps a profile frame's caption quiet, because the heading already says it", () => {
@@ -322,13 +316,18 @@ describe("honest result copy", () => {
     expect(captionFor(frame("2", 2, { basis: "same_date_as_first", anchorNumber: 1 }))).toBe("Same date as frame 01");
   });
 
-  it("explains a profile that returned only its picture", () => {
-    const profile = reading([frame("1", 1, { group: "nearby", basis: "profile_picture" })], {
-      source: { canonicalUrl: "x", shortcode: "someone", routeType: "profile" }
-    });
+  it("explains a profile with nothing to show, in its notice alone", () => {
+    const profile = reading([], { source: { canonicalUrl: "x", shortcode: "someone", routeType: "profile" } });
     const state = play(...read(A, profile));
-    expect(sheetTitle(state)).toBe("Only the profile picture came back");
-    expect(rollNote(firstRoll(state))).toContain("private");
+    expect(firstLink(state).status).toBe("empty");
+    expect(noticeFor(firstLink(state))?.text).toContain("may be private");
+    expect(noticeFor(firstLink(state))?.action).toBe("Try again");
+    expect(rollNote(firstRoll(state))).toBe("");
+    expect(sheetTitle(state)).toBe("No frames yet");
+  });
+
+  it("doesn't count zero images in a roll's note", () => {
+    expect(rollNote(firstRoll(play(...read(A, reading([])))))).toBe("");
   });
 
   it("says how many images weren't shown, and flags a Reel", () => {

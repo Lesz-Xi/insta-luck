@@ -75,7 +75,7 @@ export function createApi(deps: ApiDeps): Api {
       const sessionId = readSession(request) ?? mintSession();
       const expiresInMs = LIMITS.refTtlSeconds * 1000;
       const expiresAt = now() + expiresInMs;
-      const { drafts, omitted } = layOutSheet(input, candidates);
+      const { drafts, omitted } = layOutSheet(candidates);
       const frames = drafts.map(({ remoteUrl, ...frame }): ClientFrame => {
         const claims: CandidateClaims = { url: remoteUrl, shortcode: input.shortcode, number: frame.number, expiresAt };
         return { ...frame, ref: sealRef(claims, sessionId, liveKey) };

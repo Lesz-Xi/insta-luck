@@ -142,9 +142,9 @@ describe("the sheet", () => {
     });
     expect(body.frames.map(({ group, basis }) => [group, basis])).toEqual([
       ["post", "shown_on_profile"],
-      ["post", "shown_on_profile"],
-      ["nearby", "profile_picture"]
+      ["post", "shown_on_profile"]
     ]);
+    expect(body.omitted).toBe(0);
 
     const file = await createApi(readerDeps()).media(
       mediaRequest(body.frames[0]?.ref ?? "", cookieFrom(response), "?download=1")

@@ -7,8 +7,8 @@ import {
   frameLabel,
   LINK_ERRORS,
   linkTally,
+  NEARBY_NOTE,
   NEARBY_TITLE,
-  nearbyNote,
   noticeFor,
   primaryGroupTitle,
   reasonFor,
@@ -114,7 +114,6 @@ interface RollView {
   readonly post: GroupView;
   readonly postTitle: HTMLElement;
   readonly nearby: GroupView;
-  readonly nearbyNote: HTMLElement;
 }
 
 interface RowView {
@@ -340,10 +339,11 @@ function buildRoll(link: SheetLink): RollView {
   const nearbyHeading = document.createElement("h3");
   nearbyHeading.textContent = NEARBY_TITLE;
   const nearbyText = document.createElement("p");
+  nearbyText.textContent = NEARBY_NOTE;
   const nearby = buildGroup("is-nearby", nearbyHeading, nearbyText);
 
   root.append(head, notice, post.root, nearby.root);
-  return { root, anchor, note, notice, noticeText, noticeAction, post, postTitle, nearby, nearbyNote: nearbyText };
+  return { root, anchor, note, notice, noticeText, noticeAction, post, postTitle, nearby };
 }
 
 /** Moves frames only when the order really changed, so loaded images and keyboard focus stay put. */
@@ -378,7 +378,6 @@ function renderRoll(roll: Roll): void {
   view.noticeAction.textContent = notice?.action ?? "";
 
   view.postTitle.textContent = primaryGroupTitle(link);
-  view.nearbyNote.textContent = nearbyNote(link);
   fillGroup(view.post, roll.post, link);
   fillGroup(view.nearby, roll.nearby, link);
 }

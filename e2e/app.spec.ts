@@ -32,6 +32,14 @@ test.beforeEach(async ({ page }) => {
   await open(page);
 });
 
+test("the link field stays a rule when focused, never a box", async ({ page }) => {
+  const field = page.getByLabel("Instagram link");
+  await field.focus();
+  await expect(field).toHaveCSS("outline-style", "none");
+  await expect(field).toHaveCSS("box-shadow", /0px 1px 0px/);
+  await expect(field).toHaveCSS("border-left-style", "none");
+});
+
 test.describe("the empty workspace", () => {
   test("offers one task and no invented history", async ({ page }) => {
     await expect(page.getByLabel("Instagram link")).toBeVisible();
@@ -291,14 +299,15 @@ test.describe("profile links", () => {
   for (const link of ["https://www.instagram.com/fixprofile/", "instagram.com/fixprofile", "https://m.instagram.com/fixprofile/?hl=en"]) {
     test(`shows recent posts for ${link}, and never calls it the whole account`, async ({ page }) => {
       await add(page, link);
-      await expect(page.locator("#results-title")).toHaveText("4 frames found");
+      await expect(page.locator("#results-title")).toHaveText("3 frames found");
       await expect(page.locator(".roll-note")).toContainText("3 recent posts from this profile.");
       await expect(page.locator(".roll-note")).toContainText("isn’t the whole account");
       await expect(page.locator(".roll-note")).toContainText("paste its link");
       await expect(page.locator(".group.is-post h3")).toHaveText("Recent posts on this profile");
       await expect(page.locator(".sheet.is-post .frame-reason:not(:empty)")).toHaveCount(0);
       await expect(markFrame(page, "01")).toHaveAccessibleName(/Recent post on this profile/);
-      await expect(page.locator(".sheet.is-nearby .frame-reason").first()).toHaveText("Profile picture");
+      await expect(page.locator(".group.is-nearby")).toBeHidden();
+      await expect(page.locator("#results")).not.toContainText("Profile picture");
       await expect(page.locator(".frame-check:checked")).toHaveCount(0);
     });
   }
@@ -319,8 +328,11 @@ test.describe("profile links", () => {
 
   test("a profile with nothing public explains itself", async ({ page }) => {
     await add(page, "https://www.instagram.com/fixbare/");
-    await expect(page.locator("#results-title")).toHaveText("Only the profile picture came back");
-    await expect(page.locator(".roll-note")).toContainText("private");
+    await expect(page.locator(".roll-notice")).toContainText("may be private");
+    await expect(page.locator(".frame")).toHaveCount(0);
+    await expect(page.locator("#results-title")).toHaveText("No frames yet");
+    await expect(page.locator(".link-tally")).toHaveText("None");
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
   });
 
   test("a login wall is named, and shows no frames", async ({ page }) => {

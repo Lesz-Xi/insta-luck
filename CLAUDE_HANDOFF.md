@@ -126,6 +126,7 @@ This is new synthesis, not a clone of Instagram, Apple, Linear, or another site.
 - **Cut from the sources:** Folio's other routes and phone menu; the Lab's library, Find, Repertoire, Compose, View switch and 95% density; Direction A's mark and paper.
 - **Scroll and motion:** Feather on the landing only; native on `/app`. No trail. Rows open as a folio page turns. Reduced motion gives the same end state at once.
 - **Limits:** a sheet holds 20 links, read one at a time, and references last an hour instead of 15 minutes.
+- **Profile pictures never appear (Chief, 2026-11-05):** an avatar isn't what anyone came for, on a profile any more than on a post. A profile with nothing to show says so in its notice.
 
 **Exclusions:** no fake Instagram chrome, logos, avatars or handles in the sample; no social proof, usage counts or reliability numbers; no ZIP or download-all; no carousel, marquee, parallax, custom cursor or scroll hijacking; no confidence percentages; no "saved to your device"; no sprocket holes or film-stock logos, because the reference is the editing act, not film nostalgia.
 

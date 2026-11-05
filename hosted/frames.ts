@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { isAllowedHost } from "../tools/photography-collector/src/download/safeUrl.js";
-import type { MediaCandidate, NormalizedInstagramUrl } from "../tools/photography-collector/src/types.js";
+import type { MediaCandidate } from "../tools/photography-collector/src/types.js";
 import type { ClientFrame, FrameGroup } from "./contract.js";
 import { LIMITS } from "./limits.js";
 
@@ -49,18 +49,18 @@ function cleanPostedAt(postedAt: string | undefined): string | undefined {
 
 /**
  * Lays candidates out as a sheet: likely post media first, then everything else,
- * numbered in that order. Candidates that can't be fetched safely never become frames,
- * and on a post or Reel neither do profile pictures.
+ * numbered in that order. Candidates that can't be fetched safely never become
+ * frames, and neither do profile pictures.
  */
-export function layOutSheet(input: NormalizedInstagramUrl, candidates: readonly MediaCandidate[]): FrameSheet {
+export function layOutSheet(candidates: readonly MediaCandidate[]): FrameSheet {
   const seen = new Set<string>();
   const usable: { readonly candidate: MediaCandidate; readonly id: string }[] = [];
   let omitted = 0;
 
   for (const candidate of candidates) {
-    // A post page lists every commenter's picture, and nothing on it reliably says which
-    // is the account's own. They aren't what anyone came for, and they aren't ours to pass on.
-    if (candidate.mediaKind === "profile_picture" && input.routeType !== "profile") continue;
+    // A post page lists every commenter's picture, and nothing on it reliably says which is
+    // the account's own. On a profile it's an avatar. None is what anyone came for.
+    if (candidate.mediaKind === "profile_picture") continue;
 
     const url = fetchableUrl(candidate.remoteUrl);
     if (url === undefined) {

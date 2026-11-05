@@ -75,11 +75,7 @@ export function primaryGroupTitle(link: SheetLink): string {
   return isProfile(link) ? "Recent posts on this profile" : "Likely from this post";
 }
 
-export function nearbyNote(link: SheetLink): string {
-  return isProfile(link)
-    ? "The account’s profile picture."
-    : "These were on the page but probably aren’t part of the post. Mark one only if you want it.";
-}
+export const NEARBY_NOTE = "These were on the page but probably aren’t part of the post. Mark one only if you want it.";
 
 /** The sheet's heading. A single link keeps the plain answer; several links say what the count covers. */
 export function sheetTitle(state: AppState): string {
@@ -91,13 +87,13 @@ export function sheetTitle(state: AppState): string {
     if (rolls.length > 0) return `${plural(total, "frame", "frames")} from ${plural(rolls.length, "link", "links")}`;
     return isReading(state) ? "Reading your link" : "No frames yet";
   }
-  if (only.post.length > 0) return `${plural(total, "frame", "frames")} found`;
-  return isProfile(only.link) ? "Only the profile picture came back" : "Nothing here is clearly from this post";
+  return only.post.length > 0 ? `${plural(total, "frame", "frames")} found` : "Nothing here is clearly from this post";
 }
 
 export function rollNote(roll: Roll): string {
   const { link, post, nearby, repeated } = roll;
-  if (link.read === undefined) return "";
+  // Nothing came back, so the link's notice does the talking.
+  if (link.read === undefined || link.read.frames.length === 0) return "";
 
   const repeats = repeated > 0 ? `${plural(repeated, "image is", "images are")} shown under another link.` : undefined;
   const lost = link.lostMarks > 0 ? `${plural(link.lostMarks, "marked frame", "marked frames")} couldn’t be found again.` : undefined;
@@ -107,14 +103,13 @@ export function rollNote(roll: Roll): string {
   }
 
   if (isProfile(link)) {
-    const parts = [
-      post.length > 0
-        ? `${plural(post.length, "recent post", "recent posts")} from this profile. Instagram shows only a few publicly, so this isn’t the whole account. To reach an older post, paste its link.`
-        : "The account may be private, or may have turned off embedding, so its posts can’t be read here.",
+    return [
+      `${plural(post.length, "recent post", "recent posts")} from this profile. Instagram shows only a few publicly, so this isn’t the whole account. To reach an older post, paste its link.`,
       repeats,
       lost
-    ];
-    return parts.filter((part) => part !== undefined).join(" ");
+    ]
+      .filter((part) => part !== undefined)
+      .join(" ");
   }
 
   const omitted = link.read.omitted;
@@ -207,7 +202,9 @@ export function noticeFor(link: SheetLink): Notice | undefined {
       };
     case "empty":
       return {
-        text: "No images came back for this link. That doesn’t mean there are none: it may be private or removed, or the public reader may not have reached it.",
+        text: isProfile(link)
+          ? "No posts came back for this profile. The account may be private, or may have turned off embedding, so its posts can’t be read here."
+          : "No images came back for this link. That doesn’t mean there are none: it may be private or removed, or the public reader may not have reached it.",
         action: "Try again"
       };
     case "expired": {

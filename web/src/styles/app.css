@@ -104,6 +104,16 @@
   border-bottom-color: var(--alert);
 }
 
+/* The rule is the field's whole shape, so focus makes the rule heavier instead of drawing a box. */
+#post-link:focus-visible {
+  outline: none;
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+#post-link[aria-invalid="true"]:focus-visible {
+  box-shadow: 0 1px 0 var(--alert);
+}
+
 .hint {
   font-size: 12px;
   line-height: 1.4;
